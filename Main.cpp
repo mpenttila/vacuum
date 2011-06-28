@@ -832,18 +832,21 @@ int main(int argc, char ** argv)
 		wg->gotoLevel(0);
     wg->setStyle(app.style());
   }
-  
-/*  VacuumWidget * vac = new VacuumWidget();
+  /*
+   VacuumWidget * vac = new VacuumWidget(d);
   
       // Set widget parameters:
     vac->setThickness(50);
     vac->setSize(Nimble::Vector2(200, 200));
-    vac->setLocation(Nimble::Vector2(600, 300));
+    vac->setLocation(Nimble::Vector2(800, 300));
     // Create random colors for the widgets:
-    vac->setColor(Nimble::Vector4(0.4, 1.0f - 0.2, 1.0, 0.97));
+    vac->setColor(Nimble::Vector4(0.4, 0.4, 1.0, 1));
+    vac->setDepth(-5);
+    vac->raiseFlag(VacuumWidget::LOCK_DEPTH);
 
     // Add the widget to the scene:
-    wg->addChild(vac);
- */ 
+    //d->addChild(vac);
+*/
+ 
   return app.run();
 }

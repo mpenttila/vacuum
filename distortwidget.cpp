@@ -487,6 +487,28 @@ MultiWidgets::Widget * DistortWidget::findChildInside(Luminous::Transformer & tr
   return 0;
 }
 
+void DistortWidget::addVacuumWidget(long fingerId, Nimble::Vector2 center)
+{
+	std::cout << "Adding vacuum widget" << std::endl;
+	VacuumWidget * v = new VacuumWidget(this);
+	//v->setStyle(style());
+	m_vacuumWidgets[fingerId] = v;
+	m_nonDestroybleWidgets.insert(v);
+
+        v->setThickness(50);
+        v->setSize(Nimble::Vector2(200, 200));
+        //v->setLocation(Nimble::Vector2(600, 300));
+        v->setColor(Nimble::Vector4(0.4, 0.8, 1.0, 1.0));
+	//v->setIsVisible(true);
+	v->setDepth(-1);
+	v->raiseFlag(VacuumWidget::LOCK_DEPTH);
+	//v->setAutoBringToTop(true);
+	v->setCenterLocation(center);
+	//v->setLocation(Nimble::Vector2(600, 300));
+	v->setInputTransparent(true);
+	//addChild(v);
+}
+
 void DistortWidget::input(MultiWidgets::GrabManager & gm, float /*dt*/)
 {  
   gm.pushTransformRightMul(transform());
@@ -514,12 +536,12 @@ void DistortWidget::input(MultiWidgets::GrabManager & gm, float /*dt*/)
     MultiWidgets::Widget * hit = findChildInside(tr, gm.project(f.initTipLocation()), this);
     MultiWidgets::Widget * hit2 = findChildInside(tr, gm.project(f.tipLocation()), this);
     const float moveThreshold = 30*30;
-    if (hit && (hit == hit2 || (f.tipLocation() - f.initTipLocation()).lengthSqr() < moveThreshold)) {
+    if (hit && strcmp(hit->type(), "VacuumWidget") != 0 && (hit == hit2 || (f.tipLocation() - f.initTipLocation()).lengthSqr() < moveThreshold)) {
       m_world.DestroyBody(m_bodies[hit] );
       m_bodies.erase(m_bodies.find(hit));
 
       hit->touch();
-hit->setDepth(-20);
+      hit->setDepth(-20);
       parent()->addChild(hit);
     }
   }
@@ -540,7 +562,7 @@ hit->setDepth(-20);
     nHandLoc.x /= width();
     nHandLoc.y /= height();
 
-	// Use initial for vacuum instead of prev
+    // Use initial for vacuum instead of prev
 
     Nimble::Vector2 locInit = (m * f.initTipLocation()).xy();
     Nimble::Vector2 locPrev = (m * f.prevTipLocation()).xy();
@@ -549,19 +571,19 @@ hit->setDepth(-20);
     // Changed to locInit - loc for vacuum    
     Nimble::Vector2 diff = locInit - loc;
 
-    if (f.age()/gm.touchScreen().framesPerSecond() > 0.3f) {
+    //if (f.age()/gm.touchScreen().framesPerSecond() > 0.3f) {
       Luminous::Transformer tr;
       tr.pushTransform(Nimble::Matrix3::IDENTITY);
       MultiWidgets::Widget * hit = findChildInside(tr, gm.project(f.initTipLocation()), this);
       MultiWidgets::Widget * hit2 = findChildInside(tr, gm.project(f.tipLocation()), this);
-      if (hit && hit == hit2) {
+      if (hit && hit == hit2 && strcmp(hit2->type(), "VacuumWidget") != 0) {
         m_world.DestroyBody(m_bodies[hit] );
         m_bodies.erase(m_bodies.find(hit));
         hit->touch();
         parent()->addChild(hit);
         continue;
       }
-    }
+    //}
 
     touch();
     
@@ -569,12 +591,20 @@ hit->setDepth(-20);
     
     // Do not activate unless threshold is enough
 
-    if (diff.length() < 10) {
+    if (diff.length() < 20 || f.age()/gm.touchScreen().framesPerSecond() < 0.3f) {
       continue;
     }
 
     if (!(m_featureFlags & FEATURE_VELOCITY_FIELD))
       return;
+
+    //std::cout << "Finger id: " << f.id() << std::endl;
+    //std::cout << "f.age(): " << f.age() << std::endl;
+
+    // Draw vacuum widget if not yet drawn
+    if(m_vacuumWidgets.count(f.id()) == 0){
+        addVacuumWidget(f.id(), f.initTipLocation());
+    }
 
     using namespace Nimble;
 
@@ -589,7 +619,7 @@ hit->setDepth(-20);
     Nimble::Vector2 perp = nDiff.perpendicular(); 
     
     // In vacuum diff must influence the angle
-    perp.normalize(m_tubeWidth * (diff.length()/20));
+    perp.normalize(m_tubeWidth * (diff.length()/50));
     
     l1[0] = nHandLoc + perp;
     l1[1] = nHandLoc - perp;
@@ -840,8 +870,8 @@ void DistortWidget::render(Luminous::RenderContext & r)
   glClear(GL_COLOR_BUFFER_BIT);
 
   r.pushTransformRightMul(m);
-
-  renderChildren(r);
+  // Commented out in vacuum
+  //renderChildren(r);
   r.popTransform();
 
   glPopAttrib();
@@ -849,12 +879,13 @@ void DistortWidget::render(Luminous::RenderContext & r)
   textureRead.bind(GL_TEXTURE0);
 
   Luminous::Utils::glUsualBlend();
-  glColor4f(1, 1, 1, m_bg_alpha);
+  //glColor4f(0, 0, 0, 0.9);
 
   //r.drawTexRect(area->graphicsBounds(), Nimble::Vector4(1, 1, 1, 1).data());
-  Luminous::Utils::glTexRect(area->graphicsSize(), r.transform() * Nimble::Matrix3::translate2D(gfxLoc.x, gfxLoc.y));
+  //Luminous::Utils::glTexRect(area->graphicsSize(), r.transform() * Nimble::Matrix3::translate2D(gfxLoc.x, gfxLoc.y));
 
-  //renderChildren(r);
+  // Changed to here in vacuum
+  renderChildren(r);
 
   // hack around macintosh opengl strangeness
   textures[0]->bind(GL_TEXTURE2);

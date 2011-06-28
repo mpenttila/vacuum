@@ -19,6 +19,8 @@ class VacuumWidget : public virtual MultiWidgets::Widget
 	/// Tests if the given point is inside this widget
 	virtual bool isInside(Nimble::Vector2 v) const;
 
+	virtual const char * type() const;
+
 	inline void setThickness(float thickness)
 	{ m_thickness = thickness; }
 

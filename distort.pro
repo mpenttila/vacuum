@@ -1,3 +1,7 @@
+CONFIG += release
+CONFIG -= qt
+CONFIG -= app_bundle
+
 SOURCES += Main.cpp \
     distortwidget.cpp \
     widgetlist.cpp \

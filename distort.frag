@@ -42,7 +42,7 @@ void main(void) {
 #if 1
 	float l = length(gl_FragColor);
   l -= length(off);
-	vec4 inte = vec4(0.7, 0.4, 0.29, 0.9);
+	vec4 inte = vec4(0.6, 0.1, 0.1, 0.9);
 	vec4 exte = 0.1*vec4(0.12, 0.24, 0.17, 10.15);
   gl_FragColor = mix(inte, exte, l);
 //  gl_FragColor *= clamp(1+length(off), 1.0, 1.5);

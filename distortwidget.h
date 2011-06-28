@@ -5,6 +5,7 @@
 #include <Radiant/Grid.hpp>
 #include <Luminous/Utils.hpp>
 #include <Box2D/Box2D.h>
+#include <VacuumWidget.hpp>
 
 #include <map>
 
@@ -67,6 +68,8 @@ public:
 	void addStaticBox(const Nimble::Rectangle& rect);
 	void addOutsideWidget(MultiWidgets::Widget * w, float density, float friction);
 
+  void addVacuumWidget(long fingerId, Nimble::Vector2 center);
+
   int w, h;
   Radiant::MemGrid32f m_vectorFields[2];
 
@@ -80,6 +83,9 @@ public:
   b2World m_world;
   std::map<void*, b2Body*> m_bodies;
   std::map<void*, b2Body*> m_statics;
+
+  std::map<long, VacuumWidget*> m_vacuumWidgets;
+  std::set<Widget *> m_nonDestroybleWidgets;
 
   Valuable::ValueFloat m_bg_alpha;
   Valuable::ValueFloat m_idle_timeout;

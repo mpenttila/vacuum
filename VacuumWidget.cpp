@@ -2,11 +2,17 @@
 
 #include <Luminous/Utils.hpp>
 
+#include <iostream>
+
   VacuumWidget::VacuumWidget(MultiWidgets::Widget * parent)
     : Widget(parent),
       m_thickness(25),
       m_arcColor("#000000") // Solid black
-  {}
+  {
+       // setSize(Nimble::Vector2(200, 200));
+      //  setColor(Nimble::Vector4(0.4, 1.0f - 0.2, 1.0, 0.97));
+	//setInputTransparent(true);
+  }
 
   VacuumWidget::~VacuumWidget()
   {}
@@ -80,3 +86,12 @@
 
     return true;
   }
+
+  const char * VacuumWidget::type() const
+  {
+	return "VacuumWidget";
+  }
+
+
+
+
