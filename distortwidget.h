@@ -69,6 +69,8 @@ public:
 	void addOutsideWidget(MultiWidgets::Widget * w, float density, float friction);
 
   void addVacuumWidget(long fingerId, Nimble::Vector2 center);
+  void deleteVacuumWidget(long fingerId);
+  void modifyVacuumWidget(long fingerId, double rotation, float intensity);
 
   int w, h;
   Radiant::MemGrid32f m_vectorFields[2];

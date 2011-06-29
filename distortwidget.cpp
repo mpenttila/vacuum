@@ -3,6 +3,7 @@
 #include <Luminous/Utils.hpp>
 #include <Luminous/FramebufferObject.hpp>
 #include <Nimble/Random.hpp>
+#include <Radiant/Color.hpp>
 
 #include <Box2D/Box2D.h>
 
@@ -184,11 +185,23 @@ void DistortWidget::ensureWidgetsHaveBodies() {
 
       Nimble::Vector2 sz = 0.5f * it->size() * it->scale();
       sz.clamp(0.1f, 10000.0f);
-      b2PolygonShape box;
-      box.SetAsBox(toBox2D(sz).x, toBox2D(sz).y);
-
+      
       b2FixtureDef fixtureDef;
-      fixtureDef.shape = &box;
+      b2CircleShape circle;
+      b2PolygonShape box;
+
+      std::string type(it->type());
+
+      if(type.compare("VacuumWidget") == 0){
+        // Make a bigger shape than the visible widget
+        sz *= 1.5f;
+        circle.m_radius = toBox2D(sz).x;
+        fixtureDef.shape = &circle;
+      }
+      else{
+        box.SetAsBox(toBox2D(sz).x, toBox2D(sz).y);
+        fixtureDef.shape = &box;
+      }
       fixtureDef.density = Nimble::Math::Max(1.0f/(4*(toBox2D(sz).x*toBox2D(sz).y)), 1e-5f);
 
       fixtureDef.friction = 0.1f;
@@ -493,20 +506,39 @@ void DistortWidget::addVacuumWidget(long fingerId, Nimble::Vector2 center)
 	VacuumWidget * v = new VacuumWidget(this);
 	//v->setStyle(style());
 	m_vacuumWidgets[fingerId] = v;
-	m_nonDestroybleWidgets.insert(v);
 
-        v->setThickness(50);
-        v->setSize(Nimble::Vector2(200, 200));
-        //v->setLocation(Nimble::Vector2(600, 300));
-        v->setColor(Nimble::Vector4(0.4, 0.8, 1.0, 1.0));
-	//v->setIsVisible(true);
+        v->setThickness(10);
+        v->setSize(Nimble::Vector2(100, 100));
+	v->setColor(Radiant::Color("#69e8ffdd"));
 	v->setDepth(-1);
 	v->raiseFlag(VacuumWidget::LOCK_DEPTH);
-	//v->setAutoBringToTop(true);
 	v->setCenterLocation(center);
-	//v->setLocation(Nimble::Vector2(600, 300));
 	v->setInputTransparent(true);
-	//addChild(v);
+}
+
+void DistortWidget::deleteVacuumWidget(long fingerId)
+{
+        if(m_vacuumWidgets.count(fingerId) == 0) return;
+	VacuumWidget * v = m_vacuumWidgets[fingerId];
+	m_vacuumWidgets.erase(fingerId);
+	if(m_bodies.count(v) > 0){
+        	m_world.DestroyBody(m_bodies[v]);
+        	m_bodies.erase(m_bodies.find(v));
+        }
+	deleteChild(v);
+}
+
+void DistortWidget::modifyVacuumWidget(long fingerId, double rotation, float intensity){
+	if(m_vacuumWidgets.count(fingerId) == 0) return;
+	VacuumWidget * v = m_vacuumWidgets[fingerId];
+	v->setRotationAboutCenter(rotation);
+	std::cout << "intensity: " << intensity << std::endl;
+	intensity = Nimble::Math::Clamp(intensity, 0.0f, 0.4f);
+	if(intensity < 0.028){
+		intensity = 0;
+	}
+        std::cout << "m_arc: " << intensity << std::endl;
+	v->setArc(intensity);
 }
 
 void DistortWidget::input(MultiWidgets::GrabManager & gm, float /*dt*/)
@@ -521,6 +553,8 @@ void DistortWidget::input(MultiWidgets::GrabManager & gm, float /*dt*/)
   for (std::set<long>::iterator it = m_currentFingerIds.begin(); it != m_currentFingerIds.end(); ) {
     if (s2.findFinger(*it).isNull()) {
       lost.push_back(*it);
+      // Delete vacuum widget possibly activated by the lost finger
+      deleteVacuumWidget(*it);
       m_currentFingerIds.erase(it++);
     } else {
       it++;
@@ -569,7 +603,8 @@ void DistortWidget::input(MultiWidgets::GrabManager & gm, float /*dt*/)
     
     //Nimble::Vector2 diff = loc - locPrev;
     // Changed to locInit - loc for vacuum    
-    Nimble::Vector2 diff = locInit - loc;
+    //Nimble::Vector2 diff = locInit - loc;
+    Nimble::Vector2 diff = loc - locInit;
 
     //if (f.age()/gm.touchScreen().framesPerSecond() > 0.3f) {
       Luminous::Transformer tr;
@@ -601,15 +636,10 @@ void DistortWidget::input(MultiWidgets::GrabManager & gm, float /*dt*/)
     //std::cout << "Finger id: " << f.id() << std::endl;
     //std::cout << "f.age(): " << f.age() << std::endl;
 
-    // Draw vacuum widget if not yet drawn
-    if(m_vacuumWidgets.count(f.id()) == 0){
-        addVacuumWidget(f.id(), f.initTipLocation());
-    }
-
     using namespace Nimble;
 
     Nimble::Vector2 coord;
-    Nimble::Vector2 nDiff = diff;
+    Nimble::Vector2 nDiff = diff * -1;
     nDiff.normalize();
 
     float lengthMultiplier = 1.0;//m_input_pull_type == INPUT_PULL_INVERSELY_PROPORTIONAL ? m_input_pull_intensity : 1.0f/m_input_pull_intensity;
@@ -620,11 +650,19 @@ void DistortWidget::input(MultiWidgets::GrabManager & gm, float /*dt*/)
     
     // In vacuum diff must influence the angle
     perp.normalize(m_tubeWidth * (diff.length()/50));
-    
+
+    Nimble::Vector2 nLocInit(locInit.x/width(), locInit.y/height());
+/*
     l1[0] = nHandLoc + perp;
     l1[1] = nHandLoc - perp;
     l2[0] = nHandLoc + nDiff + perp;
     l2[1] = nHandLoc + nDiff - perp;
+*/
+
+    l1[0] = nLocInit + perp;
+    l1[1] = nLocInit - perp;
+    l2[0] = nLocInit + nDiff + perp;
+    l2[1] = nLocInit + nDiff - perp;
 
     for (int y=0; y < h; ++y) {
       float * p1 = m_vectorFields[0].line(y);
@@ -633,12 +671,15 @@ void DistortWidget::input(MultiWidgets::GrabManager & gm, float /*dt*/)
 
       for (int x=0; x < w; ++x) {
         coord.x = x/float(w-1);
-        Nimble::Vector2 dir = nHandLoc - coord;
+	// User nLocInit instead of nHandLoc
+        Nimble::Vector2 dir = nLocInit - coord;
+	Nimble::Vector2 nDir = dir;
+	nDir.normalize();
 
         float angle = Math::ACos(Nimble::dot(nDiff, dir/dir.length()));
         float nn = 1.0 - angle/(m_input_pull_angle);
 
-         if (nn < 0 || isLeftOfLine(l1[0], l2[0], coord) || !isLeftOfLine(l1[1], l2[1], coord)) {
+        if (nn < 0 || isLeftOfLine(l1[0], l2[0], coord) || !isLeftOfLine(l1[1], l2[1], coord)) { 
 			 //point is not within area of influence
              p1++;
              p2++;
@@ -654,8 +695,8 @@ void DistortWidget::input(MultiWidgets::GrabManager & gm, float /*dt*/)
         
         // Vacuum uses constant velocity (normalized)
         
-        float moveX = (nDiff.x * 100)/width();
-        float moveY = (nDiff.y * 100)/height();
+        float moveX = (nDir.x * 100)/width() * m_input_pull_intensity;
+        float moveY = (nDir.y * 100)/height() * m_input_pull_intensity;
         
         //*p1 = Math::Clamp(*p1 + Math::Min(moveX, 0.2f), -1.0f, 1.0f);
         //*p2 = Math::Clamp(*p2 + Math::Min(moveY, 0.2f), -1.0f, 1.0f);
@@ -665,6 +706,16 @@ void DistortWidget::input(MultiWidgets::GrabManager & gm, float /*dt*/)
         p1++;
         p2++;
       }
+    }
+
+    // Draw vacuum widget if not yet drawn
+    if(m_vacuumWidgets.count(f.id()) == 0){
+        addVacuumWidget(f.id(), f.initTipLocation());
+    }
+    else
+    {
+	std::cout << "diff.length() " << Nimble::Math::Sqrt(diff.length()-20) << std::endl;
+    	modifyVacuumWidget(f.id(), diff.angle(), Nimble::Math::Sqrt(diff.length()-20)/50);
     }
   }
   gm.popTransform();

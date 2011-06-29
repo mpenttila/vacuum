@@ -17,15 +17,19 @@ class VacuumWidget : public virtual MultiWidgets::Widget
 	/// Renders the widget, with OpenGL
 	virtual void render(Luminous::RenderContext & r);
 	/// Tests if the given point is inside this widget
-	virtual bool isInside(Nimble::Vector2 v) const;
+	//virtual bool isInside(Nimble::Vector2 v) const;
 
 	virtual const char * type() const;
 
 	inline void setThickness(float thickness)
 	{ m_thickness = thickness; }
 
+	inline void setArc(float percentage)
+	{ m_arc = percentage; }
+
 	private:
 	float m_thickness;
+        float m_arc;
 	// We draw arcs inside the donuts with this color:
 	Radiant::Color m_arcColor;
 };

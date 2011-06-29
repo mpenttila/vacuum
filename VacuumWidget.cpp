@@ -7,7 +7,8 @@
   VacuumWidget::VacuumWidget(MultiWidgets::Widget * parent)
     : Widget(parent),
       m_thickness(25),
-      m_arcColor("#000000") // Solid black
+      m_arcColor("#ffffffdd"),
+      m_arc(0.1)
   {
        // setSize(Nimble::Vector2(200, 200));
       //  setColor(Nimble::Vector4(0.4, 1.0f - 0.2, 1.0, 0.97));
@@ -27,64 +28,50 @@
     Nimble::Matrix3 m = r.transform();
 
     float scale = m.extractScale();
-    /* The outer radius of the donut. */
+    /* The outer radius of the widget. */
     float outerRadius = width() * 0.5f;
 
-    /* Calculate the center of  the donut. */
+    /* Calculate the center of the widget. */
     Nimble::Vector3 center = m * Nimble::Vector3(outerRadius, outerRadius, 1);
 
     /* The radius for rendering. The circle function uses the center
        of the line as the radius, while we use outer edge. */
     float radius = scale * (outerRadius - m_thickness * 0.5f);
+    float radius2 = scale * (outerRadius - m_thickness * 4.0f);
+    float radius3 = scale * (outerRadius - m_thickness * 2.0f);
 
     /* How many segments should we use for the circle. */
     int segments = Nimble::Math::Max(scale * outerRadius * 0.7f, 30.0f);
 
-    /* Enable the typical OpenGL blending mode. The blending is
-       necessary, since the functions that do silhuette anti-aliasing
-       (i.e. the circle function below) */
+    /* Enable the typical OpenGL blending mode. */
     Luminous::Utils::glUsualBlend();
 
-    /* This functions draws the main circle, with anti-aliased edges. */
+    /* Draw two fixed circles */
     Luminous::Utils::
       glFilledSoftCircle(center.data(), radius,
              m_thickness * scale, 1.0f,
              segments,
              color().data());
 
-    /* Lets draw an arc inside the donut. This adds to the graphical
-       feeling and without it users would not see when they rotate the
-       widget. */
     Luminous::Utils::
-      glFilledSoftArc(center.data(), radius,
-              m_rotation, m_rotation + 5.0f,
-              scale, 1.0f,
+      glFilledSoftCircle(center.data(), radius2,
+             m_thickness * scale, 1.0f,
+             segments,
+             color().data());
+
+    // Calculate end points
+    float start = Nimble::Math::HALF_PI + m_rotation - (m_arc * Nimble::Math::PI);
+    float end = Nimble::Math::HALF_PI + m_rotation + (m_arc * Nimble::Math::PI);
+
+    /* Draw the arc representing the influence area */
+    Luminous::Utils::
+      glFilledSoftArc(center.data(), radius3,
+              start, end,
+              m_thickness * 2 * scale, 7.0f,
               segments,
               m_arcColor.data());
 
     r.popTransform();
-  }
-
-  /* The isInside needs to be overridden since this widget is not
-     rectangular. The incoming vector is already in the local
-     coordinate system. */
-  bool VacuumWidget::isInside(Nimble::Vector2 v) const
-  {
-    /* Calculate the outer radius of the circle. */
-    float outerRadius = width() * 0.5f;
-
-    /* Calculate the center of circle.*/
-    Nimble::Vector2 center(outerRadius, outerRadius);
-    /* Compute how far the vector is from the center of the donut. */
-    float distance = (v - center).length();
-
-    /* If the distance exceeds the outer radius, or if the distance is
-       less than the inner radius, then point v is not inside this
-       widget. */
-    if(distance > outerRadius || distance < (outerRadius - m_thickness))
-      return false;
-
-    return true;
   }
 
   const char * VacuumWidget::type() const
