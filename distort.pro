@@ -17,13 +17,13 @@ LIBS += -lSDLmain
 linux-* { LIBS += -lThreadedRendering }
 
 HEADERS += \
-    distortwidget.h
+    distortwidget.hpp
 
 HEADERS += \
-    widgetlist.h
+    widgetlist.hpp
 
 HEADERS += \
-    RotatorOperator.h
+    RotatorOperator.hpp
 
 HEADERS += \
     VacuumWidget.hpp

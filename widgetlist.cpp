@@ -6,7 +6,9 @@
 
 #include "widgetlist.h"
 
-WidgetList::WidgetList(MultiWidgets::Widget * parent) : MultiWidgets::Widget(parent) {
+WidgetList::WidgetList(MultiWidgets::Widget * parent) : MultiWidgets::Widget(parent),
+	m_type("WidgetList")
+	{
 	setName("WidgetList");
 	setCSSType("WidgetList");
   setInputFlags(inputFlags() & ~INPUT_PASS_TO_CHILDREN);
@@ -212,3 +214,8 @@ void WidgetList::renderContent(Luminous::RenderContext &r)
     (**it).render(r);
   }
 }
+
+const char * WidgetList::type() const
+  {
+	return m_type;
+  }

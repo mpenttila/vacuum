@@ -385,7 +385,7 @@ public:
 		Parent(p),
 		m_current(-1),
 		m_players(players),
-    m_duplicateCount(this, "duplicate-words", 2),
+    m_duplicateCount(this, "duplicate-words", 1),
 		m_playersPassed(0)
 
 	{
@@ -665,6 +665,9 @@ public:
 
 	int yval = 20;
 	int xval = app.size().x * 0.2f;
+	
+	// Create widgetlists with words
+	
 	for (int i=0; i < words.size(); ++i){
 		for (int j=0; j < m_duplicateCount; ++j) {
 			
