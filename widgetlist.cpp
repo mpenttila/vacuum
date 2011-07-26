@@ -4,7 +4,7 @@
 #include <MultiWidgets/LimitScaleOperator.hpp>
 #include <Nimble/Random.hpp>
 
-#include "widgetlist.h"
+#include "widgetlist.hpp"
 
 WidgetList::WidgetList(MultiWidgets::Widget * parent) : MultiWidgets::Widget(parent),
 	m_type("WidgetList")
@@ -12,6 +12,32 @@ WidgetList::WidgetList(MultiWidgets::Widget * parent) : MultiWidgets::Widget(par
 	setName("WidgetList");
 	setCSSType("WidgetList");
   setInputFlags(inputFlags() & ~INPUT_PASS_TO_CHILDREN);
+}
+
+WidgetList * WidgetList::clone(){
+	WidgetList * list = WidgetList::createNiceList(parent());
+	list->setStyle(style());
+	list->setLocation(mapToParent((**i2).mapToParent(Nimble::Vector2(0, 0)) + Nimble::Vector2(30, 0)));
+	
+	for (ItemList::iterator it = m_itemList.begin(); it != m_itemList.end(); ++it ) {
+		MultiWidgets::TextBox * tb = dynamic_cast<MultiWidgets::TextBox*>(*it);
+		MultiWidgets::TextBox * tb2 = new MultiWidgets::TextBox(0, 0, MultiWidgets::TextBox::HCENTER);
+		tb2->setCSSClass("FloatingWord");
+		tb2->setStyle(tb->style());
+		tb2->setText(tb->text());
+		tb2->setWidth(tb->width());
+		tb2->setHeight(tb->height());
+		tb2->setAlignFlags(MultiWidgets::TextBox::HCENTER | MultiWidgets::TextBox::VCENTER);
+		list->addItem(tb2);
+	}
+
+	//layout();
+	list->layout();
+	list->setDepth(depth());
+	list->setScale(scale());
+	list->setRotation(rotation());
+
+	return list;	
 }
 
 WidgetList * WidgetList::createNiceList(Widget * parent, Widget * content) {
@@ -217,5 +243,5 @@ void WidgetList::renderContent(Luminous::RenderContext &r)
 
 const char * WidgetList::type() const
   {
-	return m_type;
+	return m_type.c_str();
   }

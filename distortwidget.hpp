@@ -102,6 +102,8 @@ public:
 
 	float m_particleAcc;
 	float m_blurAcc;
+
+	std::map<void*, void*> m_widgetClones;
 };
 
 #endif // DISTORTWIDGET_H

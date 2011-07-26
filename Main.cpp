@@ -9,7 +9,7 @@
 #include <Radiant/FileUtils.hpp>
 #include <Radiant/TimeStamp.hpp>
 #include <Nimble/Random.hpp>
-#include <RotatorOperator.h>
+#include <RotatorOperator.hpp>
 
 //#define USE_THREADED
 
@@ -22,8 +22,8 @@ typedef ThreadedRendering::SimpleThreadedApplication GfxApp;
 typedef MultiWidgets::SimpleSDLApplication GfxApp;
 #endif
 
-#include "distortwidget.h"
-#include "widgetlist.h"
+#include "distortwidget.hpp"
+#include "widgetlist.hpp"
 #include "VacuumWidget.hpp"
 
 #include <vector>
@@ -685,9 +685,8 @@ public:
 			tb->setText(word);
 			tb->setWidth(tb->totalTextAdvance() + tb->padding()*2 + 10);
 			tb->setHeight(1.5 * tb->heightForWidth(tb->width()));
-			tb->setAlignFlags(MultiWidgets::TextBox::HCENTER |
-					MultiWidgets::TextBox::VCENTER);
-			maxH = Nimble::Math::Max(maxH, tb->height());
+			tb->setAlignFlags(MultiWidgets::TextBox::HCENTER | MultiWidgets::TextBox::VCENTER);
+			//maxH = Nimble::Math::Max(maxH, tb->height());
 
 			WidgetList * list = WidgetList::createNiceList(app.root(), tb);
 			if(automaticRot) {

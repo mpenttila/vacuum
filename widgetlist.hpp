@@ -9,6 +9,9 @@ class WidgetList : public MultiWidgets::Widget
   ItemList m_itemList;
 public:
   WidgetList(MultiWidgets::Widget * parent = 0);
+
+  WidgetList * clone();
+
   static WidgetList * createNiceList(Widget * parent = 0, Widget * content = 0);
   virtual void update(float dt);
   void layout();

@@ -1,4 +1,4 @@
-#include "distortwidget.h"
+#include "distortwidget.hpp"
 
 #include <Luminous/Utils.hpp>
 #include <Luminous/FramebufferObject.hpp>
