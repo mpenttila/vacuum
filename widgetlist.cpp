@@ -2,6 +2,7 @@
 #include <MultiWidgets/StayInsideParentOperator.hpp>
 #include <MultiWidgets/RotateTowardsHandsOperator.hpp>
 #include <MultiWidgets/LimitScaleOperator.hpp>
+#include <MultiWidgets/TextBox.hpp>
 #include <Nimble/Random.hpp>
 
 #include "widgetlist.hpp"
@@ -17,7 +18,7 @@ WidgetList::WidgetList(MultiWidgets::Widget * parent) : MultiWidgets::Widget(par
 WidgetList * WidgetList::clone(){
 	WidgetList * list = WidgetList::createNiceList(parent());
 	list->setStyle(style());
-	list->setLocation(mapToParent((**i2).mapToParent(Nimble::Vector2(0, 0)) + Nimble::Vector2(30, 0)));
+	list->setLocation(mapToParent(Nimble::Vector2(0, 0)));
 	
 	for (ItemList::iterator it = m_itemList.begin(); it != m_itemList.end(); ++it ) {
 		MultiWidgets::TextBox * tb = dynamic_cast<MultiWidgets::TextBox*>(*it);

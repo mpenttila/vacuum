@@ -174,6 +174,14 @@ void DistortWidget::ensureWidgetsHaveBodies() {
 
   while (it != end) {
     if (m_bodies.count(*it) == 0) {
+
+      std::string type(it->type());
+      if(type.compare("WidgetList_clone") == 0){
+        // Do not create shape
+	++it;
+	continue;
+      }
+
       b2BodyDef bodyDef;
       bodyDef.type = b2_dynamicBody;
 
@@ -189,8 +197,6 @@ void DistortWidget::ensureWidgetsHaveBodies() {
       b2FixtureDef fixtureDef;
       b2CircleShape circle;
       b2PolygonShape box;
-
-      std::string type(it->type());
 
       if(type.compare("VacuumWidget") == 0){
         // Make a bigger shape than the visible widget
@@ -227,6 +233,11 @@ void DistortWidget::applyForceToBodies(float dt) {
     static const int PointCount = sizeof(points)/sizeof(points[0]);
 
     Nimble::Vector2 linear;
+
+    if(m_bodies.count(*it) == 0){
+	++it;	
+	continue;
+    }
 
     b2Body * body = m_bodies[*it];
     body->SetAngularVelocity(0.0f);

@@ -699,7 +699,10 @@ public:
 			list->setLocation(Nimble::Vector2(xval, yval));
 			//list->setRotation(rnd.rand01()*2*3.145926);
 			list->raiseFlag(WidgetList::LOCK_DEPTH);
-			
+
+			WidgetList * clone = list->clone();
+			clone->setType("WidgetList_clone");			
+
 			xval += 150;
 		}
 	}
