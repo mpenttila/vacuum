@@ -32,7 +32,19 @@ WidgetList {
   font-size: 28px;
   padding: 0;
   margin: 0;
-  color: #FFFFFF;
+  color: #FFFFFFFF;
+  foreground: #000000;
+  border-width: 1px;
+  border-color: #000000FF;
+}
+
+.FloatingWord_clone {
+	extra-input-capture-radius: 5;
+  font-name: "LiberationSerif-Regular.ttf";
+  font-size: 28px;
+  padding: 0;
+  margin: 0;
+  color: #FFFF00FF;
   foreground: #000000;
   border-width: 1px;
   border-color: #000000FF;

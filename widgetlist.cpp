@@ -23,7 +23,7 @@ WidgetList * WidgetList::clone(){
 	for (ItemList::iterator it = m_itemList.begin(); it != m_itemList.end(); ++it ) {
 		MultiWidgets::TextBox * tb = dynamic_cast<MultiWidgets::TextBox*>(*it);
 		MultiWidgets::TextBox * tb2 = new MultiWidgets::TextBox(0, 0, MultiWidgets::TextBox::HCENTER);
-		tb2->setCSSClass("FloatingWord");
+		tb2->setCSSClass("FloatingWord_clone");
 		tb2->setStyle(tb->style());
 		tb2->setText(tb->text());
 		tb2->setWidth(tb->width());

@@ -701,7 +701,9 @@ public:
 			list->raiseFlag(WidgetList::LOCK_DEPTH);
 
 			WidgetList * clone = list->clone();
-			clone->setType("WidgetList_clone");			
+			clone->setType("WidgetList_clone");
+
+			list->hide();				
 
 			xval += 150;
 		}

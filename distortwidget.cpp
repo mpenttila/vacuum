@@ -255,6 +255,15 @@ void DistortWidget::applyForceToBodies(float dt) {
         vel = vectorOffset(p);
         vel *= 5;
 
+	//std::cout << "velocity: " << vel << std::endl;
+	
+	if(vel.x > 0.01 || vel.y > 0.01){
+		(*it)->show();
+	}
+	else if(m_vacuumWidgets.size() == 0){
+		(*it)->hide();
+	}
+
         body->ApplyLinearImpulse(b2Vec2(vel.x, vel.y), body->GetWorldPoint(toBox2D(v)));
       }
     }
@@ -543,12 +552,12 @@ void DistortWidget::modifyVacuumWidget(long fingerId, double rotation, float int
 	if(m_vacuumWidgets.count(fingerId) == 0) return;
 	VacuumWidget * v = m_vacuumWidgets[fingerId];
 	v->setRotationAboutCenter(rotation);
-	std::cout << "intensity: " << intensity << std::endl;
+	//std::cout << "intensity: " << intensity << std::endl;
 	intensity = Nimble::Math::Clamp(intensity, 0.0f, 0.4f);
 	if(intensity < 0.028){
 		intensity = 0;
 	}
-        std::cout << "m_arc: " << intensity << std::endl;
+        //std::cout << "m_arc: " << intensity << std::endl;
 	v->setArc(intensity);
 }
 
@@ -725,7 +734,7 @@ void DistortWidget::input(MultiWidgets::GrabManager & gm, float /*dt*/)
     }
     else
     {
-	std::cout << "diff.length() " << Nimble::Math::Sqrt(diff.length()-20) << std::endl;
+	//std::cout << "diff.length() " << Nimble::Math::Sqrt(diff.length()-20) << std::endl;
     	modifyVacuumWidget(f.id(), diff.angle(), Nimble::Math::Sqrt(diff.length()-20)/50);
     }
   }
