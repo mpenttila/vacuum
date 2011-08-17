@@ -72,6 +72,8 @@ public:
 	void deleteVacuumWidget(long fingerId);
 	void modifyVacuumWidget(long fingerId, double rotation, float intensity);
 
+	void processGhosts();
+
 	int w, h;
 	Radiant::MemGrid32f m_vectorFields[2];
 
@@ -103,7 +105,12 @@ public:
 	float m_particleAcc;
 	float m_blurAcc;
 
-	std::map<void*, void*> m_widgetClones;
+	std::map<void*, MultiWidgets::Widget *> m_static_to_moving;
+	std::map<void*, MultiWidgets::Widget *> m_moving_to_static;
+
+	b2Body * groundBody;
+
+	std::map<MultiWidgets::Widget*, b2MouseJoint*> m_mousejoints;
 };
 
 #endif // DISTORTWIDGET_H

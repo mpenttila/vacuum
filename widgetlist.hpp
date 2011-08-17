@@ -31,6 +31,7 @@ public:
 	{ m_type = type; }
 	
   virtual const char * type() const;
+  virtual void recursiveSetAlpha(float alpha);
 	
 private:
   std::string m_type;
