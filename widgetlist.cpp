@@ -250,5 +250,7 @@ const char * WidgetList::type() const
 void WidgetList::recursiveSetAlpha(float alpha){
 	for (ItemList::iterator it = m_itemList.begin(); it != m_itemList.end(); ++it ) {
 		(*it)->setColor(1.0f,1.0f,1.0f,alpha);
+		(*it)->setForegroundColor(0.0f,0.0f,0.0f,alpha);
+		(*it)->setBorderColor(0.0f,0.0f,0.0f,alpha);
 	}
 }

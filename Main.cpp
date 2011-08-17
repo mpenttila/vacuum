@@ -150,9 +150,9 @@ void backgroundify(MultiWidgets::Widget * w)
 		float idle = w->lastInteraction().sinceSecondsD();
 		if (idle > IDLE_TIMEOUT && !w->inputTransparent()) {
 			w->setColor(1, 1, 1, 1);
-			w->recursiveSetAlpha(0.3f);
+			w->recursiveSetAlpha(0.0f);
 			MyApplication::me->overlay()->addChild(w);
-			std::cout << "Creating clone" << std::endl;
+			//std::cout << "Creating clone" << std::endl;
 			WidgetList * list = dynamic_cast<WidgetList*>(w);
 			WidgetList * clone = list->clone();
 			clone->setType("WidgetList_clone");

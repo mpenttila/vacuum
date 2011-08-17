@@ -267,6 +267,7 @@ void DistortWidget::applyForceToBodies(float dt) {
 					}
 					*/
 					//(*it)->show();
+					(*it)->recursiveSetAlpha(0.5f);
 					body->ApplyLinearImpulse(b2Vec2(vel.x, vel.y), body->GetWorldPoint(toBox2D(v)));
 				}
 				else if(m_vacuumWidgets.size() == 0) {
@@ -290,6 +291,7 @@ void DistortWidget::applyForceToBodies(float dt) {
 						m_bodies[*it]->SetAwake(true);
 					}
 					*/
+					(*it)->recursiveSetAlpha(0.0f);
 					if(m_bodies.count(*it) > 0 && ((*it)->location() - staticLoc).length() > 0.1){
 						m_world.DestroyBody(body);
 						m_bodies.erase(m_bodies.find(*it));
@@ -680,7 +682,7 @@ void DistortWidget::input(MultiWidgets::GrabManager & gm, float /*dt*/)
 		tr.pushTransform(Nimble::Matrix3::IDENTITY);
 		MultiWidgets::Widget * hit = findChildInside(tr, gm.project(f.initTipLocation()), this);
 		MultiWidgets::Widget * hit2 = findChildInside(tr, gm.project(f.tipLocation()), this);
-		if (hit && hit == hit2 && strcmp(hit2->type(), "VacuumWidget") != 0) {
+		if (hit && hit == hit2 && strcmp(hit2->type(), "VacuumWidget") != 0 && strcmp(hit2->type(), "WidgetList_clone") != 0) {
 			if(m_bodies.count(hit) > 0)
 			{
 				m_world.DestroyBody(m_bodies[hit] );
@@ -688,14 +690,18 @@ void DistortWidget::input(MultiWidgets::GrabManager & gm, float /*dt*/)
 			}
 			hit->touch();
 			
-			m_moving_to_static[hit]->hide();
-			MultiWidgets::Widget * staticList = m_moving_to_static[hit];
-			m_static_to_moving.erase(staticList);
-			m_moving_to_static.erase(hit);
-			std::cout << "deleteChild" << std::endl;
-			deleteChild(staticList);
-
-			hit->recursiveSetAlpha(1.0f);
+			if(m_moving_to_static.count(hit) > 0)
+			{
+				m_moving_to_static[hit]->hide();
+				MultiWidgets::Widget * staticList = m_moving_to_static[hit];
+				staticList->hide();
+				m_static_to_moving.erase(staticList);
+				m_moving_to_static.erase(hit);
+				//std::cout << "deleteChild" << std::endl;
+				deleteChild(staticList);
+				hit->recursiveSetAlpha(1.0f);
+			}
+			
 			parent()->addChild(hit);
 			continue;
 		}
