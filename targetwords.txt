@@ -1,0 +1,3 @@
+#sentence number;word number;word;width;x-pos;y-pos
+1;1;There;300;200;400
+
