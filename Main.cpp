@@ -632,7 +632,7 @@ public:
 		*/
 	}
 
-	void gotoLevel(int level) {
+	void gotoLevel(int sentence, int word) {
 		Nimble::RandomUniform rnd(55);
 		m_playersPassed = 0;
 		// delete everything, create again
@@ -687,48 +687,46 @@ public:
 		// Create widgetlists with words
 
 		for (int i=0; i < words.size(); ++i) {
-			for (int j=0; j < m_duplicateCount; ++j) {
 
-				if(xval > (app.size().x * 0.8f)) {
-					xval = app.size().x * 0.2f;
-					yval += 50;
-				}
-
-				std::string& word = words[i];
-
-				MultiWidgets::TextBox * tb = new MultiWidgets::TextBox(0, 0, MultiWidgets::TextBox::HCENTER);
-				tb->setCSSClass("FloatingWord");
-
-				tb->setStyle(app.style());
-				tb->setText(word);
-				tb->setWidth(tb->totalTextAdvance() + tb->padding()*2 + 10);
-				tb->setHeight(1.5 * tb->heightForWidth(tb->width()));
-				tb->setAlignFlags(MultiWidgets::TextBox::HCENTER | MultiWidgets::TextBox::VCENTER);
-				//maxH = Nimble::Math::Max(maxH, tb->height());
-
-				WidgetList * list = WidgetList::createNiceList(app.root(), tb);
-				if(automaticRot) {
-					list->addOperator(new RotatorOperator);
-				}
-				if (!manualRot) {
-					list->setInputFlags(list->inputFlags() & ~INPUT_ROTATION);
-				}
-				list->setStyle(app.style());
-				list->setLocation(Nimble::Vector2(xval, yval));
-				//list->setRotation(rnd.rand01()*2*3.145926);
-				list->raiseFlag(WidgetList::LOCK_DEPTH);
-
-				/*WidgetList * clone = list->clone();
-				clone->setType("WidgetList_clone");
-				clone->setInputTransparent(true);
-
-				d->m_static_to_moving[clone] = list;
-				d->m_moving_to_static[list] = clone;
-				*/
-				//list->hide();
-
-				xval += 150;
+			if(xval > (app.size().x * 0.8f)) {
+				xval = app.size().x * 0.2f;
+				yval += 50;
 			}
+
+			std::string& word = words[i];
+
+			MultiWidgets::TextBox * tb = new MultiWidgets::TextBox(0, 0, MultiWidgets::TextBox::HCENTER);
+			tb->setCSSClass("FloatingWord");
+
+			tb->setStyle(app.style());
+			tb->setText(word);
+			tb->setWidth(tb->totalTextAdvance() + tb->padding()*2 + 10);
+			tb->setHeight(1.5 * tb->heightForWidth(tb->width()));
+			tb->setAlignFlags(MultiWidgets::TextBox::HCENTER | MultiWidgets::TextBox::VCENTER);
+			//maxH = Nimble::Math::Max(maxH, tb->height());
+
+			WidgetList * list = WidgetList::createNiceList(app.root(), tb);
+			if(automaticRot) {
+				list->addOperator(new RotatorOperator);
+			}
+			if (!manualRot) {
+				list->setInputFlags(list->inputFlags() & ~INPUT_ROTATION);
+			}
+			list->setStyle(app.style());
+			list->setLocation(Nimble::Vector2(xval, yval));
+			//list->setRotation(rnd.rand01()*2*3.145926);
+			list->raiseFlag(WidgetList::LOCK_DEPTH);
+
+			/*WidgetList * clone = list->clone();
+			clone->setType("WidgetList_clone");
+			clone->setInputTransparent(true);
+
+			d->m_static_to_moving[clone] = list;
+			d->m_moving_to_static[list] = clone;
+			*/
+			//list->hide();
+
+			xval += 150;
 		}
 		std::string w;
 
@@ -828,42 +826,25 @@ int main(int argc, char ** argv)
 	d->setInputTransparent(true);
 	//MultiWidgets::Widget * root = d;
 	app.m_overlay = d;
-	// Open a directory with images:
-	Radiant::Directory directory(dirpath, "jpeg,jpg,png");
-
-	Nimble::RandomUniform rnd(5);
 
 
 	WordGameWidget * wg = new WordGameWidget(players, app.root(), d);
 	wg->setDepth(-25);
 	wg->raiseFlag(WordGameWidget::LOCK_DEPTH);
 	wg->setAutoBringToTop(false);
-//	wg->setLocation(50, 400);
-//	d->addStaticBox(wg->sceneGeometry());
-//  d->addOutsideWidget(wg, 500, 1.0f);
 
 	std::vector<std::string> levels;
 	for (int i=1; i <= 12; ++i) {
 		levels.push_back(Radiant::StringUtils::stringify(i));
 	}
 
-	std::random_shuffle(levels.begin(), levels.end());
-
 	bool rotation = true;
 	float maxH = 10;
-	{
-		for (int i=0; i < levelCount; ++i) {
-			wg->addLevel(levels[i]);
-		}
-		/*
-			wg->addLevel("first");
-		wg->addLevel("second");
-		wg->addLevel("third");
-		*/
-		wg->gotoLevel(0);
-		wg->setStyle(app.style());
+	for (int i=0; i < levelCount; ++i) {
+		wg->addLevel(levels[i]);
 	}
-
+	wg->gotoLevel(0);
+	wg->setStyle(app.style());
 
 	return app.run();
 }
