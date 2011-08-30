@@ -1,5 +1,5 @@
 #!/bin/sh
 
 mkdir -p logs
-./distort --css style.css 2&>1 | tee logs/`date +%Y-%m-%d-%H%M%S`_automatic_loosely.log
+./vacuum --css style.css --players 2 2>&1 | tee logs/`date +%Y-%m-%d-%H%M%S`_2player.log
 

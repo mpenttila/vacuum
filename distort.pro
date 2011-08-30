@@ -5,7 +5,8 @@ CONFIG -= app_bundle
 SOURCES += Main.cpp \
     distortwidget.cpp \
     widgetlist.cpp \
-    VacuumWidget.cpp
+    VacuumWidget.cpp \
+    wordreader.cpp
 
 exists(/home/loop/multitouch/cornerstone) {
 	INCLUDEPATH += /home/loop/multitouch/cornerstone/ /home/loop/multitouch/cornerstone/multitude
@@ -27,6 +28,8 @@ HEADERS += \
 
 HEADERS += \
     VacuumWidget.hpp
+
+HEADER += wordreader.hpp
 
 TARGET = vacuum
 

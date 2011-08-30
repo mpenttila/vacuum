@@ -3,28 +3,38 @@
 
 #include <vector>
 #include <string>
-#include <iostream>
-#include <fstream>
 
 struct TargetWord {
-	std::string word;
 	int id;
+	std::string word;
 	int x;
 	int y;
 	int height;
 	int width;
 };
 
-struct Sentence{
-	int id;
-	std::vector<TargetWord> words;
-}
+class Sentence{
+	public:
+		Sentence(int number): id(number){}
+		int id;
+		std::vector<TargetWord> words;
+		void add(TargetWord word){
+			words.push_back(word);
+		}
+		size_t size(){
+			return words.size();
+		}
+		TargetWord operator[](int pos) const{
+			return words[pos];
+		}
+};
 
 class WordReader {
 	
 	private:
 		// Vector of sentence for each player
 		std::vector< std::vector<Sentence> > sentences;
+		int _playerCount;
 		
 	public:
 		WordReader(int playerCount);
@@ -32,6 +42,8 @@ class WordReader {
 		
 		// Returns null if no such word
 		TargetWord getWord(int player, int sentenceNumber, int wordNumber);
+		inline int maxSentence()
+		{ return sentences[0].size(); }
 };
 
 #endif

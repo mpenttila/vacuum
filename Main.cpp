@@ -25,6 +25,7 @@ typedef MultiWidgets::SimpleSDLApplication GfxApp;
 #include "distortwidget.hpp"
 #include "widgetlist.hpp"
 #include "VacuumWidget.hpp"
+#include "wordreader.hpp"
 
 #include <vector>
 namespace {
@@ -75,7 +76,7 @@ public:
 	static MyApplication * me;
 	MyApplication() : Parent(),
 		m_automaticRotation(false),
-		m_manualRotation(false)
+		m_manualRotation(true)
 	{
 		assert(!me);
 		me = this;
@@ -399,11 +400,11 @@ public:
 
 	WordGameWidget(int players, MultiWidgets::Widget * p=0, DistortWidget * _d = 0) :
 		Parent(p),
-		m_current(-1),
+		m_currentsentence(-1),
+		m_currentword(-1),
 		m_players(players),
-		m_duplicateCount(this, "duplicate-words", 1),
-		m_playersPassed(0)
-
+		m_playersPassed(0),
+		wordReader(players)
 	{
 		setName("WordGame");
 		setCSSType("WordGame");
@@ -506,7 +507,7 @@ public:
 
 	virtual void processMessage(const char* msg, Radiant::BinaryData& bd)
 	{
-		std::string s(msg);
+/*		std::string s(msg);
 
 		if (Radiant::StringUtils::beginsWith(s, "submit-button-pressed")) {
 			// must take at least 3 seconds
@@ -593,6 +594,7 @@ public:
 		} else {
 			Parent::processMessage(msg, bd);
 		}
+*/
 	}
 
 	/// @param baseFilename words will be loaded from {baseFilename}.words and
@@ -632,7 +634,7 @@ public:
 		*/
 	}
 
-	void gotoLevel(int sentence, int word) {
+	void gotoLevel(int sentenceid, int wordid) {
 		Nimble::RandomUniform rnd(55);
 		m_playersPassed = 0;
 		// delete everything, create again
@@ -671,15 +673,19 @@ public:
 		}
 
 
-		if (level >= m_wordLists.size())
+		if (sentenceid > wordReader.maxSentence())
 			return;
 
-		m_current = level;
-		std::vector<std::string>& words = m_wordLists[m_current];
+		m_currentsentence = sentenceid;
+		m_currentword = wordid;
+
+		std::vector<TargetWord> words;
+
 		for (int i=0; i < m_players; ++i) {
 			getAnswerBoard(i)->setIsVisible(true);
 			getPreview(i)->setIsVisible(true);
-		}
+			words.push_back(wordReader.getWord(i, sentenceid, wordid));
+		}			
 
 		int yval = 20;
 		int xval = app.size().x * 0.2f;
@@ -693,7 +699,7 @@ public:
 				yval += 50;
 			}
 
-			std::string& word = words[i];
+			std::string& word = words[i].word;
 
 			MultiWidgets::TextBox * tb = new MultiWidgets::TextBox(0, 0, MultiWidgets::TextBox::HCENTER);
 			tb->setCSSClass("FloatingWord");
@@ -713,7 +719,7 @@ public:
 				list->setInputFlags(list->inputFlags() & ~INPUT_ROTATION);
 			}
 			list->setStyle(app.style());
-			list->setLocation(Nimble::Vector2(xval, yval));
+			list->setLocation(Nimble::Vector2(words[i].x, words[i].y));
 			//list->setRotation(rnd.rand01()*2*3.145926);
 			list->raiseFlag(WidgetList::LOCK_DEPTH);
 
@@ -730,13 +736,7 @@ public:
 		}
 		std::string w;
 
-		/*
-			for (int i=0; i < m_sentences[m_current].size(); ++i) {
-				w += m_sentences[m_current][i] + ' ';
-			}
-		*/
-
-		for (int i=0; i < m_lines[m_current].size(); ++i) {
+/*		for (int i=0; i < m_lines[m_current].size(); ++i) {
 			Line& line = m_lines[m_current][i];
 			for (int j=0; j < line.size(); ++j)
 				w += line[j] + ' ';
@@ -746,7 +746,7 @@ public:
 
 		Radiant::info("Starting level %d: poem:\n %s",
 		              m_current, w.c_str());
-
+*/
 		for (int i=0; i < m_players; ++i) {
 			getPreview(i)->m_sentenceBox->setText(w);
 		}
@@ -757,7 +757,8 @@ public:
 	std::vector<std::vector<Line> > m_lines;
 	std::vector<std::vector<std::string> > m_sentences;
 	std::vector<std::vector<std::string> > m_wordLists;
-	int m_current;
+	int m_currentsentence;
+	int m_currentword;
 
 	std::vector<AnswerBoard*> m_answerBoards;
 	std::vector<WordPreviewWidget*> m_previews;
@@ -773,6 +774,8 @@ public:
 	int m_playersPassed;
 
 	DistortWidget * d;
+
+	WordReader wordReader;
 };
 
 int main(int argc, char ** argv)
@@ -802,10 +805,6 @@ int main(int argc, char ** argv)
 			featureFlags |= DistortWidget::FEATURE_ARROWS;
 		} else if (r == "--particles") {
 			featureFlags |= DistortWidget::FEATURE_PARTICLES;
-		} else if (r == "--manualrotation") {
-			app.m_manualRotation = true;
-		} else if (r == "--automaticrotation") {
-			app.m_automaticRotation = true;
 		} else if (r == "--players" && (i+1) < argc) {
 			players = atoi(argv[++i]);
 		} else if (r == "--levels" && (i+1) < argc) {
@@ -843,7 +842,7 @@ int main(int argc, char ** argv)
 	for (int i=0; i < levelCount; ++i) {
 		wg->addLevel(levels[i]);
 	}
-	wg->gotoLevel(0);
+	wg->gotoLevel(1,1);
 	wg->setStyle(app.style());
 
 	return app.run();
