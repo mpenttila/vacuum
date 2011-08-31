@@ -176,7 +176,7 @@ void DistortWidget::ensureWidgetsHaveBodies() {
 		if (m_bodies.count(*it) == 0) {
 
 			std::string type(it->type());
-			if(type.compare("WidgetList_clone") == 0) {
+			if(type.compare("clone") == 0) {
 				// Do not create shape
 				++it;
 				continue;
@@ -257,7 +257,7 @@ void DistortWidget::applyForceToBodies(float dt) {
 
 				//std::cout << "velocity: " << vel << std::endl;
 
-				if(vel.x > 0.01 || vel.y > 0.01) {
+				if(vel.x > 0.01 || vel.y > 0.01 || vel.x < -0.01 || vel.y < -0.01) {
 					/*					
 					if(m_mousejoints.count(*it) > 0){
 						std::cout << "Erasing mousejoint" << std::endl;
@@ -272,25 +272,8 @@ void DistortWidget::applyForceToBodies(float dt) {
 				}
 				else if(m_vacuumWidgets.size() == 0) {
 					// Return to previous location
-					//(*it)->setLocation(m_moving_to_static[*it]->location());
-					//(*it)->setLocation(300,300);
-					//(*it)->hide();
 					Vector2 staticLoc = m_moving_to_static[*it]->location();
-					/*if(m_mousejoints.count(*it) == 0 && ((*it)->location() - staticLoc).length() > 0.1)
-					{
-						std::cout << "Creating mousejoint" << std::endl;
-						b2MouseJointDef md;
-						md.bodyA = groundBody;
-						md.bodyB = m_bodies[*it];
-						b2Vec2 newLocation = toBox2D(m_moving_to_static[*it]->location());
-						md.target = newLocation;
-						md.collideConnected = true;
-						md.maxForce = 5000.0f;
-						m_mousejoints[*it] = (b2MouseJoint *)m_world.CreateJoint(&md);
-						m_world.CreateJoint(&md);
-						m_bodies[*it]->SetAwake(true);
-					}
-					*/
+
 					(*it)->recursiveSetAlpha(0.0f);
 					if(m_bodies.count(*it) > 0 && ((*it)->location() - staticLoc).length() > 0.1){
 						m_world.DestroyBody(body);
@@ -481,7 +464,9 @@ Nimble::Vector2 DistortWidget::vectorValue(Nimble::Vector2 v)
 	int y = v.y * (h-1);
 
 	float tx = v.x*(w-1)-x;
-	float ty = v.y*(h-1)-y;
+	float ty = v.y*(h-1)-y;	
+
+	//std::cout << "vectorValue: x: " << x << " y: " << y << " tx: " << tx << " ty: " << ty;
 
 	x = Nimble::Math::Clamp(x, 0, w-1);
 	y = Nimble::Math::Clamp(y, 0, h-1);
@@ -492,6 +477,10 @@ Nimble::Vector2 DistortWidget::vectorValue(Nimble::Vector2 v)
 	Nimble::Vector2 a11(m_vectorFields[0].get(x+1, y+1), m_vectorFields[1].get(x+1, y+1));
 
 	Nimble::Vector2 pos = a00*(1-tx)*(1-ty)+a10*tx*(1-ty)+a01*(1-tx)*ty+a11*tx*ty;
+	
+	//if(pos.x < 0.00001) pos.x = 0;
+	//if(pos.y < 0.00001) pos.y = 0;
+	//std::cout << "vectorValue pos x: " << pos.x << " pos.y " << pos.y << std::endl;
 	return pos;
 }
 
@@ -682,7 +671,7 @@ void DistortWidget::input(MultiWidgets::GrabManager & gm, float /*dt*/)
 		tr.pushTransform(Nimble::Matrix3::IDENTITY);
 		MultiWidgets::Widget * hit = findChildInside(tr, gm.project(f.initTipLocation()), this);
 		MultiWidgets::Widget * hit2 = findChildInside(tr, gm.project(f.tipLocation()), this);
-		if (hit && hit == hit2 && strcmp(hit2->type(), "VacuumWidget") != 0 && strcmp(hit2->type(), "WidgetList_clone") != 0) {
+		if (hit && hit == hit2 && strcmp(hit2->type(), "VacuumWidget") != 0 && strcmp(hit2->type(), "clone") != 0) {
 			if(m_bodies.count(hit) > 0)
 			{
 				m_world.DestroyBody(m_bodies[hit] );

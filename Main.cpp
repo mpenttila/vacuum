@@ -154,13 +154,17 @@ void backgroundify(MultiWidgets::Widget * w)
 			w->setColor(1, 1, 1, 1);
 			w->recursiveSetAlpha(0.0f);
 			MyApplication::me->overlay()->addChild(w);
-			//std::cout << "Creating clone" << std::endl;
+			std::cout << "Creating clone" << std::endl;
+			/*
 			WidgetList * list = dynamic_cast<WidgetList*>(w);
 			WidgetList * clone = list->clone();
-			clone->setType("WidgetList_clone");
+			*/
+			RoundTextBox * tb = dynamic_cast<RoundTextBox*>(w);
+			RoundTextBox * clone = tb->clone();
+			clone->setType("clone");
 			clone->setInputTransparent(true);
-			d->m_static_to_moving[clone] = list;
-			d->m_moving_to_static[list] = clone;
+			d->m_static_to_moving[clone] = w;
+			d->m_moving_to_static[w] = clone;
 		} else {
 			float t = 0.0f;
 			if (idle > IDLE_OK)
@@ -228,7 +232,7 @@ public:
 		int count=0;
 		MultiWidgets::Widget::ChildIterator it;
 		for (it = childBegin(); it != childEnd(); ++it) {
-			if (dynamic_cast<WidgetList*>(*it))
+			if (dynamic_cast<RoundTextBox*>(*it))
 				++count;
 		}
 		return count;
@@ -283,7 +287,7 @@ public:
 			        !it->hasInteraction() &&
 			        it->lastInteraction().sinceSecondsD() < maxIdle &&
 			        it->intersects(*this)) {
-				if (dynamic_cast<WidgetList*>(*it)) {
+				if (dynamic_cast<RoundTextBox*>(*it)) {
 					moveWidgetPreservingTransformation(*it, this);
 				}
 			}
@@ -413,6 +417,7 @@ public:
 
 		m_answerBoards.resize(players);
 		m_previews.resize(players);
+		m_startButtons.resize(players);
 
 		d = _d;
 
@@ -472,18 +477,18 @@ public:
 				m_answerBoards[i]->addOperator(new RotatorOperator);
 				preview->addOperator(new RotatorOperator);
 			}
+
+			std::string buttonName = std::string("P") + Radiant::StringUtils::stringify(i+1) + std::string(" Start");
+			std::string buttonEvent = std::string("start-button-pressed-") + Radiant::StringUtils::stringify(i);
+			m_startButtons[i] = new MultiWidgets::TextBox(this, buttonName.c_str(), MultiWidgets::TextBox::VCENTER | MultiWidgets::TextBox::HCENTER);
+			m_startButtons[i]->eventAddListener("interactionbegin", buttonEvent.c_str(), this);
+			m_startButtons[i]->setCSSType("StartButton");
+			m_startButtons[i]->setStyle(style());
+			m_startButtons[i]->setLocation(500, 500);
+			m_startButtons[i]->setInputFlags(MultiWidgets::Widget::INPUT_USE_TAPS);
 		}
-		/*
-				if (MyApplication::me->automaticRotation()) {
-		      addOperator(new RotatorOperator);
-				}
-		*/
 
 		setInputFlags(MultiWidgets::Widget::INPUT_PASS_TO_CHILDREN);
-
-		//setRotation(-Nimble::Math::PI/2);
-		//setRotationAboutCenter(-Nimble::Math::PI/2);
-		//
 	}
 
 	virtual void update(float dt) {
@@ -647,11 +652,11 @@ public:
 
 		MultiWidgets::Widget::ChildIterator it;
 		for (it = app.root()->childBegin(); it != app.root()->childEnd(); ++it) {
-			if (dynamic_cast<WidgetList*>(*it))
+			if (dynamic_cast<RoundTextBox*>(*it))
 				app.root()->deleteChild(*it);
 		}
 		for (it = app.overlay()->childBegin(); it != app.overlay()->childEnd(); ++it) {
-			if (dynamic_cast<WidgetList*>(*it))
+			if (dynamic_cast<RoundTextBox*>(*it))
 				app.overlay()->deleteChild(*it);
 		}
 		for (int i=0; i < m_players; ++i) {
@@ -685,33 +690,26 @@ public:
 		for (int i=0; i < m_players; ++i) {
 			getAnswerBoard(i)->setIsVisible(true);
 			getPreview(i)->setIsVisible(true);
+			m_startButtons[i]->setIsVisible(true);
 			words.push_back(wordReader.getWord(i, sentenceid, wordid));
 		}			
 
-		int yval = 20;
-		int xval = app.size().x * 0.2f;
-
-		// Create widgetlists with words
+		// Create words
 
 		for (int i=0; i < words.size(); ++i) {
 
-			if(xval > (app.size().x * 0.8f)) {
-				xval = app.size().x * 0.2f;
-				yval += 50;
-			}
-
 			std::string& word = words[i].word;
 
-			MultiWidgets::TextBox * tb = new MultiWidgets::TextBox(0, 0, MultiWidgets::TextBox::HCENTER);
+			RoundTextBox * tb = new RoundTextBox(app.root(), 0, MultiWidgets::TextBox::HCENTER);
 			tb->setCSSClass("FloatingWord");
 
 			tb->setStyle(app.style());
 			tb->setText(word);
-			tb->setWidth(tb->totalTextAdvance() + tb->padding()*2 + 10);
-			tb->setHeight(1.5 * tb->heightForWidth(tb->width()));
+			tb->setWidth(words[i].width);
+			tb->setHeight(words[i].width);
 			tb->setAlignFlags(MultiWidgets::TextBox::HCENTER | MultiWidgets::TextBox::VCENTER);
-			//maxH = Nimble::Math::Max(maxH, tb->height());
-
+			
+			/*
 			WidgetList * list = WidgetList::createNiceList(app.root(), tb);
 			if(automaticRot) {
 				list->addOperator(new RotatorOperator);
@@ -720,20 +718,12 @@ public:
 				list->setInputFlags(list->inputFlags() & ~INPUT_ROTATION);
 			}
 			list->setStyle(app.style());
-			list->setLocation(Nimble::Vector2(words[i].x, words[i].y));
-			//list->setRotation(rnd.rand01()*2*3.145926);
+			list->setLocation(Nimble::Vector2(words[i].x, words[i].y));		
 			list->raiseFlag(WidgetList::LOCK_DEPTH);
-
-			/*WidgetList * clone = list->clone();
-			clone->setType("WidgetList_clone");
-			clone->setInputTransparent(true);
-
-			d->m_static_to_moving[clone] = list;
-			d->m_moving_to_static[list] = clone;
 			*/
-			//list->hide();
 
-			xval += 150;
+			tb->setLocation(Nimble::Vector2(words[i].x, words[i].y));
+			tb->raiseFlag(RoundTextBox::LOCK_DEPTH);
 		}
 		std::string w;
 
@@ -763,6 +753,7 @@ public:
 
 	std::vector<AnswerBoard*> m_answerBoards;
 	std::vector<WordPreviewWidget*> m_previews;
+	std::vector<MultiWidgets::TextBox*> m_startButtons;
 	/*
 	MultiWidgets::TextBox * m_sentenceBox;
 	MultiWidgets::TextBox * m_submit;

@@ -7,6 +7,7 @@
 #include <Luminous/Utils.hpp>
 
 #include "widgetlist.hpp"
+#include "RoundTextBox.hpp"
 
 WidgetList::WidgetList(MultiWidgets::Widget * parent) : MultiWidgets::Widget(parent),
 	m_type("WidgetList")
@@ -22,8 +23,8 @@ WidgetList * WidgetList::clone(){
 	list->setLocation(mapToParent(Nimble::Vector2(0, 0)));
 	
 	for (ItemList::iterator it = m_itemList.begin(); it != m_itemList.end(); ++it ) {
-		MultiWidgets::TextBox * tb = dynamic_cast<MultiWidgets::TextBox*>(*it);
-		MultiWidgets::TextBox * tb2 = new MultiWidgets::TextBox(0, 0, MultiWidgets::TextBox::HCENTER);
+		RoundTextBox * tb = dynamic_cast<RoundTextBox*>(*it);
+		RoundTextBox * tb2 = new RoundTextBox(0, 0, MultiWidgets::TextBox::HCENTER);
 		tb2->setCSSClass("FloatingWord_clone");
 		tb2->setStyle(tb->style());
 		tb2->setText(tb->text());
