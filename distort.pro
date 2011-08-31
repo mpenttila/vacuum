@@ -17,19 +17,7 @@ LIBS += -lMultiWidgets -lRadiant -lLuminous -lPoetic -lValuable -lFluffy -lReson
 LIBS += -lSDLmain
 linux-* { LIBS += -lThreadedRendering }
 
-HEADERS += \
-    distortwidget.hpp
-
-HEADERS += \
-    widgetlist.hpp
-
-HEADERS += \
-    RotatorOperator.hpp
-
-HEADERS += \
-    VacuumWidget.hpp
-
-HEADER += wordreader.hpp
+HEADERS += distortwidget.hpp widgetlist.hpp RotatorOperator.hpp VacuumWidget.hpp wordreader.hpp RoundTextBox.hpp
 
 TARGET = vacuum
 

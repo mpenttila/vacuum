@@ -27,7 +27,7 @@ public:
   Widget* getItem(size_t idx);
   size_t itemCount() const;
   void renderContent(Luminous::RenderContext &r);
-  virtual void render(Luminous::RenderContext & r);
+  //virtual void render(Luminous::RenderContext & r);
   inline void setType(std::string type)
 	{ m_type = type; }
 	

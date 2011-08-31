@@ -26,6 +26,7 @@ typedef MultiWidgets::SimpleSDLApplication GfxApp;
 #include "widgetlist.hpp"
 #include "VacuumWidget.hpp"
 #include "wordreader.hpp"
+#include "RoundTextBox.hpp"
 
 #include <vector>
 namespace {

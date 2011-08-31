@@ -1,13 +1,9 @@
 
-#ifndef VacuumWidget_DONUT_WIDGET_HPP
-#define VacuumWidget_DONUT_WIDGET_HPP
+#ifndef VACUUMWIDGET_HPP
+#define VACUUMWIDGET_HPP
 
 #include <MultiWidgets/Widget.hpp>
 
-/** This is a donut-shaped widget. It demonstrates the use of virtual
-  functions <b>isInside</b> and <b>render</b>.
-  
-*/
 class VacuumWidget : public virtual MultiWidgets::Widget
 {
 	public:

@@ -247,62 +247,49 @@ void WidgetList::renderContent(Luminous::RenderContext &r)
 void WidgetList::render(Luminous::RenderContext & r)
   {
 	int m_thickness(25);
-        Radiant::Color m_arcColor("#ffffffdd");
 	float m_arc(0.1);
-    /* Apply the current transformation matrix to the current
-       rendering matrix. */
+    // Apply the current transformation matrix to the current
+       rendering matrix.
     r.pushTransformRightMul(transform());
 
-    /* Get the current rendering transform, starting from the root. */
+    // Get the current rendering transform, starting from the root.
     Nimble::Matrix3 m = r.transform();
 
     float scale = m.extractScale();
-    /* The outer radius of the widget. */
+    // The outer radius of the widget.
     float outerRadius = width() * 0.5f;
 
-    /* Calculate the center of the widget. */
+    // Calculate the center of the widget.
     Nimble::Vector3 center = m * Nimble::Vector3(outerRadius, outerRadius, 1);
 
-    /* The radius for rendering. The circle function uses the center
-       of the line as the radius, while we use outer edge. */
+    // The radius for rendering. The circle function uses the center
+    //   of the line as the radius, while we use outer edge.
     float radius = scale * (outerRadius - m_thickness * 0.5f);
     float radius2 = scale * (outerRadius - m_thickness * 4.0f);
     float radius3 = scale * (outerRadius - m_thickness * 2.0f);
 
-    /* How many segments should we use for the circle. */
+    // How many segments should we use for the circle.
     int segments = Nimble::Math::Max(scale * outerRadius * 0.7f, 30.0f);
 
-    /* Enable the typical OpenGL blending mode. */
+    // Enable the typical OpenGL blending mode.
     Luminous::Utils::glUsualBlend();
 
-    /* Draw two fixed circles */
+    // Draw two fixed circles
     Luminous::Utils::
       glFilledSoftCircle(center.data(), radius,
              m_thickness * scale, 1.0f,
              segments,
              color().data());
 
-    Luminous::Utils::
-      glFilledSoftCircle(center.data(), radius2,
-             m_thickness * scale, 1.0f,
-             segments,
-             color().data());
 
     // Calculate end points
     float start = Nimble::Math::HALF_PI + m_rotation - (m_arc * Nimble::Math::PI);
     float end = Nimble::Math::HALF_PI + m_rotation + (m_arc * Nimble::Math::PI);
 
-    /* Draw the arc representing the influence area */
-    Luminous::Utils::
-      glFilledSoftArc(center.data(), radius3,
-              start, end,
-              m_thickness * 2 * scale, 7.0f,
-              segments,
-              m_arcColor.data());
-
     r.popTransform();
   }
 */
+
 const char * WidgetList::type() const
   {
 	return m_type.c_str();
