@@ -418,6 +418,7 @@ public:
 		m_answerBoards.resize(players);
 		m_previews.resize(players);
 		m_startButtons.resize(players);
+		m_playerReadyToStart = {false, false};
 
 		d = _d;
 
@@ -484,8 +485,10 @@ public:
 			m_startButtons[i]->eventAddListener("interactionbegin", buttonEvent.c_str(), this);
 			m_startButtons[i]->setCSSType("StartButton");
 			m_startButtons[i]->setStyle(style());
-			m_startButtons[i]->setLocation(500, 500);
+			m_startButtons[i]->setLocation(sz.x/2 - 150 + i * 300, sz.y/2);
 			m_startButtons[i]->setInputFlags(MultiWidgets::Widget::INPUT_USE_TAPS);
+			m_startButtons[i]->setDepth(0);
+			m_startButtons[i]->hide();
 		}
 
 		setInputFlags(MultiWidgets::Widget::INPUT_PASS_TO_CHILDREN);
@@ -510,11 +513,23 @@ public:
 		std::transform(s2.begin(), s2.end(), s2.begin(), ::tolower);
 		return s1 == s2;
 	}
+	
+	void initializeLevel(int sentenceid, int wordid){
+		for (int i=0; i < m_players; ++i) {
+			m_startButtons[i]->show();
+		}
+	}
 
 	virtual void processMessage(const char* msg, Radiant::BinaryData& bd)
 	{
-/*		std::string s(msg);
+		std::string s(msg);
+		
+		if (Radiant::StringUtils::beginsWith(s, "start-button-pressed")) {
+			int player = s[s.size()-1] - '0';
+			
+		}
 
+/*
 		if (Radiant::StringUtils::beginsWith(s, "submit-button-pressed")) {
 			// must take at least 3 seconds
 			if (m_levelStartedAt.sinceSecondsD() < 3.0f) {
@@ -754,6 +769,8 @@ public:
 	std::vector<AnswerBoard*> m_answerBoards;
 	std::vector<WordPreviewWidget*> m_previews;
 	std::vector<MultiWidgets::TextBox*> m_startButtons;
+	bool m_playerReadyToStart[2];
+	
 	/*
 	MultiWidgets::TextBox * m_sentenceBox;
 	MultiWidgets::TextBox * m_submit;
@@ -834,7 +851,7 @@ int main(int argc, char ** argv)
 	for (int i=0; i < levelCount; ++i) {
 		wg->addLevel(levels[i]);
 	}
-	wg->gotoLevel(1,1);
+	wg->initializeLevel(1,1);
 	wg->setStyle(app.style());
 
 	return app.run();

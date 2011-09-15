@@ -1,0 +1,3 @@
+#sentencenumber;wordnumber;word;width;x;y
+1;1;Omena;180;1200;600
+1;2;putoaa;180;1200;600

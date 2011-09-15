@@ -1,0 +1,3 @@
+#sentencenumber;wordnumber;word;width;x;y
+1;1;Kissa;150;500;300
+1;2;istuu;150;600;400
