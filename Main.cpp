@@ -175,219 +175,43 @@ void backgroundify(MultiWidgets::Widget * w)
 	}
 }
 
-void check_rotations(MultiWidgets::Widget * w)
-{
-	// value is (old rotation, time since previous check)
-	static std::map<MultiWidgets::Widget*, std::pair<float, int> > counters;
-	static int check_interval = 100; // ~1 second
-	if (!counters.count(w)) {
-		counters[w].second = 0;
-		counters[w].first = w->rotation();
-	}
-	if (!w->hasInteraction()) {
-		counters.erase(counters.find(w));
-		return;
-	}
-
-	if (++counters[w].second == check_interval) {
-		float r1 = w->rotation();
-		float r2 = counters[w].first;
-		float deltarot = fmod(fabsf(r2-r1), 2*Nimble::Math::PI);
-
-		float threshold = 0.7*Nimble::Math::PI/2;
-		if (deltarot > threshold) {
-			Radiant::info("Manual rotation for %s; %f -> %f = %f; fingers %d; hands %d",
-			              w->name().c_str(),
-			              r1, r2,
-			              deltarot,
-			              w->grabFingerCount(),
-			              w->grabHandCount()
-			             );
-		}
-		counters[w].second = 0;
-		counters[w].first = r1;
-	}
-
-}
-
 void bg()
 {
 	callWidgetTree(MyApplication::me->root(), backgroundify);
-	if (MyApplication::me->manualRotation()) {
-		callWidgetTree(MyApplication::me->root(), check_rotations);
-	}
 }
 
-class AnswerBoard : public MultiWidgets::Widget {
-	typedef MultiWidgets::Widget Parent;
+class CollectedWordsWidget : public MultiWidgets::Widget{
+	
 public:
-	AnswerBoard(MultiWidgets::Widget *p=0) : Parent(p)
+	
+	CollectedWordsWidget(MultiWidgets::Widget * p=0): MultiWidgets::Widget(p), m_yloc(0), m_xloc(30)
 	{
-		setName("AnswerBoard");
-		setCSSType("AnswerBoard");
-		//setMomentum(0);
+		setName("CollectedWordsWidget");
+		setCSSType("CollectedWordsWidget");
 	}
-
-	int answerCount() {
-		int count=0;
-		MultiWidgets::Widget::ChildIterator it;
-		for (it = childBegin(); it != childEnd(); ++it) {
-			if (dynamic_cast<RoundTextBox*>(*it))
-				++count;
-		}
-		return count;
-	}
-
-	void processFingers(MultiWidgets::GrabManager &gm, MultiWidgets::FingerArray &fingers, float dt)
+	
+	void addWord(const std::string & word)
 	{
-		Parent::processFingers(gm, fingers, dt);
-#if 0
-//    setLocation(m_fixedCenterLocation);
-
-		setLocation(0, 0);
-		Nimble::Matrix3 m = parent()->transform() * transform();
-
-		Nimble::Vector2 tr, sc;
-		float rot;
-
-		decomposeTransformation(m, tr, rot, sc);
-
-		parent()->setLocation(tr);
-		parent()->setRotation(rot);
-		parent()->setScale(sc.x);
-		//parent()->setRotation(parent()->rotation() + rotation());
-
-		setScale(1);
-		setLocation(10, 10);
-		setRotation(0);
-#endif
-	}
-
-	void update(float dt)
-	{
-		if (!parent() || !parent()->parent())
-			return;
-
-		MultiWidgets::Widget * top = parent()->parent();
-
-
-		MultiWidgets::Widget::ChildIterator it;
-		// after this many seconds without interaction, intersecting
-		// widgets no longer stick to this
-		float maxIdle = 1.0f;
-
-		for (it = childBegin(); it != childEnd(); ++it) {
-			if (!it->hasInteraction() && !it->intersects(*this)) {
-				moveWidgetPreservingTransformation(*it, top);
-			}
+		MultiWidgets::TextBox * tb = new MultiWidgets::TextBox(this, word.c_str(), MultiWidgets::TextBox::HCENTER | MultiWidgets::TextBox::VCENTER);
+		tb->setCSSType("CollectedWord");
+		tb->setStyle(style());
+		tb->setInputTransparent(true);
+		//tb->setRotation(-1 * Nimble::Math::HALF_PI);
+		tb->setHeight(50);
+		tb->setFaceSize(36);
+		tb->setWidth(tb->totalTextAdvance() + 30);
+		if((m_yloc + tb->totalTextAdvance() + 30) > width()){
+			m_yloc = 0;
+			m_xloc += 42;
 		}
-
-		for (it = top->childBegin(); it != top->childEnd(); ++it) {
-			if (it->lastInteraction() > 0 &&
-			        !it->hasInteraction() &&
-			        it->lastInteraction().sinceSecondsD() < maxIdle &&
-			        it->intersects(*this)) {
-				if (dynamic_cast<RoundTextBox*>(*it)) {
-					moveWidgetPreservingTransformation(*it, this);
-				}
-			}
-		}
-		Parent::update(dt);
+		tb->setLocation(m_yloc, m_xloc);
+		m_yloc += tb->width();
 	}
-
-	Nimble::Vector2f m_fixedCenterLocation;
+	
+	int m_yloc;
+	int m_xloc;
+	
 };
-
-
-class WordPreviewWidget : public MultiWidgets::Widget {
-	typedef MultiWidgets::Widget Parent;
-public:
-	WordPreviewWidget(MultiWidgets::Widget* p=0)
-		: Parent(p),
-		  m_sentenceBox(new MultiWidgets::TextBox(this)),
-		  m_submit(new MultiWidgets::TextBox(this))
-	{
-		setName("WordPreview");
-		/*
-		setInputFlags(INPUT_USE_SINGLE_TAPS | INPUT_PASS_TO_CHILDREN);
-			if (MyApplication::me->manualRotation()) {
-				setInputFlags(inputFlags() | INPUT_ROTATION);
-			}
-		*/
-		/*
-				if (MyApplication::me->automaticRotation()) {
-					addOperator(new RotatorOperator);
-				}
-		*/
-		m_submit->setInputFlags(MultiWidgets::Widget::INPUT_USE_SINGLE_TAPS);
-		m_submit->setAlignFlags(MultiWidgets::TextBox::HCENTER |
-		                        MultiWidgets::TextBox::VCENTER);
-		m_submit->setText("Submit!");
-		m_sentenceBox->setFixed(true);
-
-		m_sentenceBox->setSize(Nimble::Vector2(400, 120));
-		m_sentenceBox->setFaceSize(20);
-		m_submit->setLocation(Nimble::Vector2(0, 120));
-		m_submit->setSize(Nimble::Vector2(400, 30));
-		m_submit->setPadding(0);
-		m_sentenceBox->setPadding(0);
-		m_submit->setBorder(0);
-		m_sentenceBox->setBorder(0);
-		setPadding(0);
-
-		setSize(400, 150);
-
-		setAutoBringToTop(false);
-		m_submit->setAutoBringToTop(false);
-		m_sentenceBox->setAutoBringToTop(false);
-	}
-
-	virtual void update(float dt)
-	{
-
-		setCenterLocation(m_fixedCenterLocation);
-		Radiant::Color c = m_submit->color();
-		if (m_submit->isVisible() && m_submit->hasInteraction()) {
-			float since = m_submit->interactionBegan().sinceSecondsD() / 2.0f;
-			c[3] = 1-since;
-			if (since > 1 && m_lastEvent.sinceSecondsD() > 3.0f) {
-				m_lastEvent = Radiant::TimeStamp::getTime();
-				eventSend("player-submit");
-				m_submit->dropAllGrabs(*MultiWidgets::SimpleSDLApplication::instance()->grabManager());
-			}
-
-		} else {
-			c[3] = 1.0f;
-		}
-		m_submit->setColor(c);
-
-		Parent::update(dt);
-	}
-
-	// workaround
-	Nimble::Vector2f m_fixedCenterLocation;
-	Radiant::TimeStamp m_lastEvent;
-
-	MultiWidgets::TextBox* m_sentenceBox;
-	MultiWidgets::TextBox* m_submit;
-};
-
-/*
-class WordGameUserWidget : public MultiWidgets::Widget {
-	typedef MultiWidgets::Widget Parent;
-	public:
-	WordGameUserWidget(MultiWidgets::Widget* p=0)
-		: Parent(p),
-		m_answerBoard(new AnswerBoard(this)),
-		m_preview(new WordPreviewWidget(this))
-	{
-
-	}
-
-	AnswerBoard* m_answerBoard;
-	WordPreviewWidget* m_preview;
-};
-*/
 
 class WordGameWidget : public MultiWidgets::Widget {
 	typedef MultiWidgets::Widget Parent;
@@ -395,103 +219,57 @@ class WordGameWidget : public MultiWidgets::Widget {
 
 public:
 
-	AnswerBoard* getAnswerBoard(size_t idx) {
-		return m_answerBoards[idx];
-	}
-
-	WordPreviewWidget* getPreview(size_t idx) {
-		return m_previews[idx];
-	}
-
-	WordGameWidget(int players, MultiWidgets::Widget * p=0, DistortWidget * _d = 0) :
+	WordGameWidget(int players, MultiWidgets::Widget * p=0, DistortWidget * _d = 0, double physicalWidth = 0) :
 		Parent(p),
-		m_currentsentence(-1),
-		m_currentword(-1),
+		m_currentsentence(1),
+		m_currentword(0),
 		m_players(players),
 		m_playersPassed(0),
+		m_physicalWidth(physicalWidth),
 		wordReader(players)
 	{
 		setName("WordGame");
 		setCSSType("WordGame");
 		setAutoBringToTop(false);
 
-		m_answerBoards.resize(players);
-		m_previews.resize(players);
+		m_collectedWords.resize(players);
 		m_startButtons.resize(players);
 		m_playerReadyToStart = {false, false};
 
 		d = _d;
 
 		Nimble::Vector2 sz = MyApplication::me->size();
-		int previewH = 150;
-		int previewW = 400;
+		int preH = 200;
+		int preW = 800;
 		Nimble::Vector2 previewLocs[] = {
-			Nimble::Vector2(0, sz.y/2 - previewH),
-			Nimble::Vector2(sz.x-previewW, sz.y/2 - previewH)
-		};
-		const char* submitClasses[] = {
-			"submit_1", "submit_2"
-		};
-		const char * answerClasses[] = {
-			"answer_1", "answer_2"
+			Nimble::Vector2(0, sz.y/2 + preW/2),
+			Nimble::Vector2(sz.x, sz.y/2 - preW/2)
 		};
 
 		for (int i=0; i < players; ++i) {
-			m_previews[i] = new WordPreviewWidget(this);
-
-			//Widget* answerFrame = new Widget(this);
-			m_answerBoards[i] = new AnswerBoard(this);
-
-			//answerFrame->setInputFlags(INPUT_MOTION_XY | INPUT_PASS_TO_CHILDREN);
-
-			WordPreviewWidget* preview = getPreview(i);
-
-			std::string eventName = std::string("submit-button-pressed-") + Radiant::StringUtils::stringify(i);
-			preview->eventAddListener("player-submit", eventName.c_str(), this);
-			preview->setLocation(previewLocs[i]);
-			preview->setRotationAboutCenter(-Nimble::Math::PI/2 + i*Nimble::Math::PI);
-			preview->m_submit->setCSSClass(submitClasses[i]);
-			preview->m_fixedCenterLocation = preview->mapToParent(preview->size()*0.5f);
-			m_answerBoards[i]->setCSSClass(answerClasses[i]);
-			m_answerBoards[i]->setColor(255, 0, 0, 255);
-			m_answerBoards[i]->setSize(300, 300);
-			m_answerBoards[i]->addOperator(new MultiWidgets::StayInsideParentOperator(1000,
-			                               MultiWidgets::StayInsideParentOperator::DEFAULT_FLAGS, 1));
-
-
-			/*
-			answerFrame->setLocation(previewLocs[i].x, previewLocs[i].y + 150 + 20);
-			*/
-			//answerFrame->setSize(300+20, 300+20);
-			m_answerBoards[i]->setLocation(previewLocs[i].x, previewLocs[i].y + 150);
-			//m_answerBoards[i]->m_fixedCenterLocation = m_answerBoards[i]->location();
-			//m_answerBoard->setRotationAboutCenter(Nimble::Math::PI/2);
-			m_answerBoards[i]->setAutoBringToTop(false);
-			m_answerBoards[i]->setInputFlags(INPUT_MOTION_XY | INPUT_ROTATION | INPUT_PASS_TO_CHILDREN);
-
-			preview->setInputFlags(INPUT_MOTION_XY | INPUT_ROTATION | INPUT_PASS_TO_CHILDREN);
-			if (!MyApplication::me->manualRotation()) {
-				m_answerBoards[i]->setInputFlags(m_answerBoards[i]->inputFlags() & ~INPUT_ROTATION);
-				preview->setInputFlags(preview->inputFlags() & ~INPUT_ROTATION);
-			}
-			if (MyApplication::me->automaticRotation()) {
-				m_answerBoards[i]->addOperator(new RotatorOperator);
-				preview->addOperator(new RotatorOperator);
-			}
-
+			m_collectedWords[i] = new CollectedWordsWidget(this);
+			m_collectedWords[i]->setWidth(preW);
+			m_collectedWords[i]->setHeight(preH);
+			m_collectedWords[i]->setRotationAboutCenter(-Nimble::Math::PI/2 + i*Nimble::Math::PI);
+			m_collectedWords[i]->setLocation(previewLocs[i]);
+			m_collectedWords[i]->setInputTransparent(true);
+			
 			std::string buttonName = std::string("P") + Radiant::StringUtils::stringify(i+1) + std::string(" Start");
 			std::string buttonEvent = std::string("start-button-pressed-") + Radiant::StringUtils::stringify(i);
 			m_startButtons[i] = new MultiWidgets::TextBox(this, buttonName.c_str(), MultiWidgets::TextBox::VCENTER | MultiWidgets::TextBox::HCENTER);
 			m_startButtons[i]->eventAddListener("interactionbegin", buttonEvent.c_str(), this);
 			m_startButtons[i]->setCSSType("StartButton");
 			m_startButtons[i]->setStyle(style());
-			m_startButtons[i]->setLocation(sz.x/2 - 150 + i * 300, sz.y/2);
+			m_startButtons[i]->setLocation(sz.x/2 - 175 + i * 150, sz.y/2 - 35);
 			m_startButtons[i]->setInputFlags(MultiWidgets::Widget::INPUT_USE_TAPS);
 			m_startButtons[i]->setDepth(0);
-			m_startButtons[i]->hide();
+			m_startButtons[i]->setIsVisible(false);
+			
 		}
 
 		setInputFlags(MultiWidgets::Widget::INPUT_PASS_TO_CHILDREN);
+		
+		eventAddListener("clear-widget", "clear-widget", this);
 	}
 
 	virtual void update(float dt) {
@@ -514,10 +292,24 @@ public:
 		return s1 == s2;
 	}
 	
-	void initializeLevel(int sentenceid, int wordid){
-		for (int i=0; i < m_players; ++i) {
-			m_startButtons[i]->show();
+	void initializeLevel(){
+		
+		m_currentWordWidgets.clear();
+		++m_currentword;
+
+		if(m_currentword > wordReader.sentenceLength(m_currentsentence)){
+			++m_currentsentence;
+			if(m_currentsentence > wordReader.maxSentence()){
+				// End
+				return;
+			}
+			m_currentword = 1;
 		}
+		for(int i = 0; i < m_players; ++i){
+			m_playerReadyToStart[i] = false;
+			m_startButtons[i]->setIsVisible(true);
+		}
+		m_playersPassed = 0;
 	}
 
 	virtual void processMessage(const char* msg, Radiant::BinaryData& bd)
@@ -526,7 +318,36 @@ public:
 		
 		if (Radiant::StringUtils::beginsWith(s, "start-button-pressed")) {
 			int player = s[s.size()-1] - '0';
-			
+			m_playerReadyToStart[player] = true;
+			for(int i = 0; i < m_players; ++i){
+				if(!m_playerReadyToStart[i]){
+					return;
+				}
+			}
+			for (int i=0; i < m_players; ++i) {
+				m_startButtons[i]->setIsVisible(false);
+				//deleteChild(m_startButtons[i]);
+			}
+			gotoLevel(m_currentsentence, m_currentword);
+		}
+		else if(Radiant::StringUtils::beginsWith(s, "word-acquired")){
+			int player = s[s.size()-1] - '0';
+			std::cout << "word acquired by player " << player << std::endl;
+			++m_playersPassed;
+			Radiant::BinaryData data;
+			data.writeInt32(player);
+			eventSend("clear-widget", data);
+		}
+		else if(Radiant::StringUtils::beginsWith(s, "clear-widget")){
+			int player = bd.readInt32();
+			std::cout << "clear-widget received, player: " << player << std::endl;
+			std::cout << "m_currentWordWidgets size " << m_currentWordWidgets.size() << std::endl;
+			m_collectedWords[player]->addWord((wordReader.getWord(player, m_currentsentence, m_currentword)).word);
+			m_currentWordWidgets[player]->raiseFlag(RoundTextBox::DELETE_ME);
+			if(m_playersPassed == m_players){
+				// Level clear, go to next
+				initializeLevel();
+			}
 		}
 
 /*
@@ -618,43 +439,6 @@ public:
 */
 	}
 
-	/// @param baseFilename words will be loaded from {baseFilename}.words and
-	///        expected sentence from {baseFilename}.expected
-	void addLevel(const std::string& baseFilename) {
-
-		std::ifstream words( (baseFilename + ".words").c_str() );
-		std::string word;
-		m_wordLists.resize(m_wordLists.size()+1);
-		std::vector<std::string>& wordList = m_wordLists.back();
-
-		while (words >> word) {
-			wordList.push_back(word);
-		}
-
-		std::ifstream expected( (baseFilename + ".expected").c_str() );
-		m_sentences.resize(m_sentences.size() + 1);
-		std::vector<std::string>& sentence = m_sentences.back();
-		m_lines.resize(m_lines.size() + 1);
-		std::vector<Line>& lines = m_lines.back();
-
-		std::string line;
-		while (std::getline(expected, line)) {
-			std::stringstream ss;
-			ss << line;
-			lines.resize(lines.size()+1);
-			while (ss >> word) {
-				sentence.push_back(word);
-				lines.back().push_back(word);
-			}
-		}
-
-		/*
-			while (expected >> word) {
-				sentence.push_back(word);
-		}
-		*/
-	}
-
 	void gotoLevel(int sentenceid, int wordid) {
 		Nimble::RandomUniform rnd(55);
 		m_playersPassed = 0;
@@ -662,8 +446,6 @@ public:
 
 		float maxH = 10;
 		MyApplication& app = *MyApplication::me;
-		bool automaticRot = app.automaticRotation();
-		bool manualRot = app.manualRotation();
 
 		MultiWidgets::Widget::ChildIterator it;
 		for (it = app.root()->childBegin(); it != app.root()->childEnd(); ++it) {
@@ -674,71 +456,33 @@ public:
 			if (dynamic_cast<RoundTextBox*>(*it))
 				app.overlay()->deleteChild(*it);
 		}
-		for (int i=0; i < m_players; ++i) {
-			getAnswerBoard(i)->deleteChildren();
-		}
-
-		// delete static objects just in case
-		DistortWidget* dw = dynamic_cast<DistortWidget*>(app.overlay());
-		assert(dw != 0);
-		for (int i=0; i < m_players; ++i)
-			dw->removeStaticObject(getPreview(i));
-
-		for (int i=0; i < m_players; ++i) {
-			MultiWidgets::Widget* w = getPreview(i);
-			Nimble::Vector2 center = w->mapToScene(w->size()*0.5f);
-			Nimble::Vector2 topLeft = w->mapToScene(Nimble::Vector2(0,0));
-			float rad = (center-topLeft).length();
-
-			dw->addStaticDisk(w, center, rad * 0.95f);
-		}
-
 
 		if (sentenceid > wordReader.maxSentence())
 			return;
-
-		m_currentsentence = sentenceid;
-		m_currentword = wordid;
-
-		std::vector<TargetWord> words;
-
-		for (int i=0; i < m_players; ++i) {
-			getAnswerBoard(i)->setIsVisible(true);
-			getPreview(i)->setIsVisible(true);
-			m_startButtons[i]->setIsVisible(true);
-			words.push_back(wordReader.getWord(i, sentenceid, wordid));
-		}			
-
+		
 		// Create words
 
-		for (int i=0; i < words.size(); ++i) {
-
-			std::string& word = words[i].word;
+		for (int i=0; i < m_players; ++i) {
+			
+			TargetWord word = wordReader.getWord(i, sentenceid, wordid);
 
 			RoundTextBox * tb = new RoundTextBox(app.root(), 0, MultiWidgets::TextBox::HCENTER);
 			tb->setCSSClass("FloatingWord");
 
 			tb->setStyle(app.style());
-			tb->setText(word);
-			tb->setWidth(words[i].width);
-			tb->setHeight(words[i].width);
+			tb->setText(word.word);
+			// Word width is in millimeters, have to calculate pixel width
+			int pixelWidth = Nimble::Math::Round((double)app.size().maximum() / m_physicalWidth * word.width);
+			tb->setWidth(pixelWidth);
+			tb->setHeight(word.width);
 			tb->setAlignFlags(MultiWidgets::TextBox::HCENTER | MultiWidgets::TextBox::VCENTER);
-			
-			/*
-			WidgetList * list = WidgetList::createNiceList(app.root(), tb);
-			if(automaticRot) {
-				list->addOperator(new RotatorOperator);
-			}
-			if (!manualRot) {
-				list->setInputFlags(list->inputFlags() & ~INPUT_ROTATION);
-			}
-			list->setStyle(app.style());
-			list->setLocation(Nimble::Vector2(words[i].x, words[i].y));		
-			list->raiseFlag(WidgetList::LOCK_DEPTH);
-			*/
-
-			tb->setLocation(Nimble::Vector2(words[i].x, words[i].y));
+			tb->setLocation(Nimble::Vector2(word.x, word.y));
 			tb->raiseFlag(RoundTextBox::LOCK_DEPTH);
+			std::string eventname = std::string("word-acquired-") + Radiant::StringUtils::stringify(i);
+			tb->eventAddListener("interactionbegin", eventname.c_str(), this);
+			
+			// Add widget to vector to find it later
+			m_currentWordWidgets.push_back(tb);
 		}
 		std::string w;
 
@@ -753,9 +497,6 @@ public:
 		Radiant::info("Starting level %d: poem:\n %s",
 		              m_current, w.c_str());
 */
-		for (int i=0; i < m_players; ++i) {
-			getPreview(i)->m_sentenceBox->setText(w);
-		}
 
 		m_levelStartedAt = Radiant::TimeStamp::getTime();
 	}
@@ -766,10 +507,11 @@ public:
 	int m_currentsentence;
 	int m_currentword;
 
-	std::vector<AnswerBoard*> m_answerBoards;
-	std::vector<WordPreviewWidget*> m_previews;
+	std::vector<CollectedWordsWidget*> m_collectedWords;
 	std::vector<MultiWidgets::TextBox*> m_startButtons;
 	bool m_playerReadyToStart[2];
+	//bool m_playerFinished[2];
+	std::vector<RoundTextBox*> m_currentWordWidgets;
 	
 	/*
 	MultiWidgets::TextBox * m_sentenceBox;
@@ -781,6 +523,7 @@ public:
 	Valuable::ValueInt m_duplicateCount;
 	int m_players;
 	int m_playersPassed;
+	double m_physicalWidth;
 
 	DistortWidget * d;
 
@@ -803,6 +546,8 @@ int main(int argc, char ** argv)
 	uint32_t featureFlags = 0;
 	int players = 1;
 	int levelCount = 2;
+	// Default is the width of Multitouch Cell Advanced in millimeters
+	double displayWidth = 1018;
 
 	// Scan command line arguments for directory name
 	for(int i = 0; i < argc; i++) {
@@ -818,6 +563,9 @@ int main(int argc, char ** argv)
 			players = atoi(argv[++i]);
 		} else if (r == "--levels" && (i+1) < argc) {
 			levelCount = atoi(argv[++i]);
+		} else if (r == "--displaywidth" && (i+1) < argc) {
+			// Should be millimeters
+			displayWidth = atof(argv[++i]);
 		}
 
 	}
@@ -836,7 +584,7 @@ int main(int argc, char ** argv)
 	app.m_overlay = d;
 
 
-	WordGameWidget * wg = new WordGameWidget(players, app.root(), d);
+	WordGameWidget * wg = new WordGameWidget(players, app.root(), d, displayWidth);
 	wg->setDepth(-25);
 	wg->raiseFlag(WordGameWidget::LOCK_DEPTH);
 	wg->setAutoBringToTop(false);
@@ -848,10 +596,12 @@ int main(int argc, char ** argv)
 
 	bool rotation = true;
 	float maxH = 10;
+	/*
 	for (int i=0; i < levelCount; ++i) {
 		wg->addLevel(levels[i]);
 	}
-	wg->initializeLevel(1,1);
+	*/
+	wg->initializeLevel();
 	wg->setStyle(app.style());
 
 	return app.run();

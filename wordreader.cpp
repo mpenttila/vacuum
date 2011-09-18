@@ -66,7 +66,7 @@ WordReader::WordReader(int playerCount) : _playerCount(playerCount) {
 				int width;
 				part = strtok(NULL, ";");
 				if(part != NULL){
-					width = atoi(part);
+					width = atof(part);
 				}
 				else{
 					std::cout << "Incomplete line in file targetwords." << i << ".txt" << " sentence " << sentencenumber << std::endl;
@@ -99,10 +99,6 @@ WordReader::WordReader(int playerCount) : _playerCount(playerCount) {
 			std::cout << "file not found" << std::endl;
 		}
 	}
-	std::cout << "sentences size: " << sentences.size();
-	std::cout << " sentences[0] size: " << sentences[0].size();
-	std::cout << " sentences[0][0] size: " << sentences[0][0].size();
-	std::cout << "sentences[0][0][0]" << sentences[0][0][0].word << std::endl;
 };
 
 WordReader::~WordReader(){}

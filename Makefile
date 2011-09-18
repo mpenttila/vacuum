@@ -11,8 +11,8 @@
 CC            = gcc
 CXX           = g++
 DEFINES       = 
-CFLAGS        = -pipe -O2 -Wall -W $(DEFINES)
-CXXFLAGS      = -pipe -O2 -Wall -W $(DEFINES)
+CFLAGS        = -pipe -O2 -Wall -W $(DEFINES) -g
+CXXFLAGS      = -pipe -O2 -Wall -W $(DEFINES) -g
 INCPATH       = -I/usr/share/qt4/mkspecs/linux-g++ -I.
 LINK          = g++
 LFLAGS        = -Wl,-O1

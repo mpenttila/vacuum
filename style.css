@@ -90,3 +90,13 @@ StartButton {
 	foreground: #000000FF;
 }
 
+CollectedWordsWidget {
+	padding: 5px;
+	color: #00000000;
+	foreground: #FFFFFFFF;
+}
+
+CollectedWord {
+	color: #00000000;
+	foreground: #FFFFFFFF;
+}
