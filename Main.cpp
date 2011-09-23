@@ -263,7 +263,7 @@ public:
 			m_startButtons[i]->setLocation(sz.x/2 - 175 + i * 150, sz.y/2 - 35);
 			m_startButtons[i]->setInputFlags(MultiWidgets::Widget::INPUT_USE_TAPS);
 			m_startButtons[i]->setDepth(0);
-			m_startButtons[i]->setIsVisible(false);
+			m_startButtons[i]->setVisible(false);
 			
 		}
 
@@ -307,7 +307,7 @@ public:
 		}
 		for(int i = 0; i < m_players; ++i){
 			m_playerReadyToStart[i] = false;
-			m_startButtons[i]->setIsVisible(true);
+			m_startButtons[i]->setVisible(true);
 		}
 		m_playersPassed = 0;
 	}
@@ -325,7 +325,7 @@ public:
 				}
 			}
 			for (int i=0; i < m_players; ++i) {
-				m_startButtons[i]->setIsVisible(false);
+				m_startButtons[i]->setVisible(false);
 				//deleteChild(m_startButtons[i]);
 			}
 			gotoLevel(m_currentsentence, m_currentword);
@@ -426,8 +426,8 @@ public:
 				             );
 				m_playersPassed++;
 				///@todo sprinkle words from answerboard around?
-				m_answerBoards[idx]->setIsVisible(false);
-				m_previews[idx]->setIsVisible(false);
+				m_answerBoards[idx]->setVisible(false);
+				m_previews[idx]->setVisible(false);
 				if (m_playersPassed == m_players) {
 
 					gotoLevel(m_current + 1);

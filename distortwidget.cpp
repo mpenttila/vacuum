@@ -649,7 +649,7 @@ void DistortWidget::input(MultiWidgets::GrabManager & gm, float /*dt*/)
 
 		m_currentFingerIds.insert(f.id());
 
-		Nimble::Vector2 loc = (m * f.tipLocation()).xy();
+		Nimble::Vector2 loc = (m * f.tipLocation()).vector2();
 		Nimble::Vector2 nLoc(loc.x/width(), loc.y/height());
 		Nimble::Vector2 nHandLoc = loc; //gm.findHand(f.handId()).palmCenter();
 
@@ -658,8 +658,8 @@ void DistortWidget::input(MultiWidgets::GrabManager & gm, float /*dt*/)
 
 		// Use initial for vacuum instead of prev
 
-		Nimble::Vector2 locInit = (m * f.initTipLocation()).xy();
-		Nimble::Vector2 locPrev = (m * f.prevTipLocation()).xy();
+		Nimble::Vector2 locInit = (m * f.initTipLocation()).vector2();
+		Nimble::Vector2 locPrev = (m * f.prevTipLocation()).vector2();
 
 		//Nimble::Vector2 diff = loc - locPrev;
 		// Changed to locInit - loc for vacuum

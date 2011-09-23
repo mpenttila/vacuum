@@ -92,7 +92,7 @@ void RoundTextBox::cachedRender(Luminous::RenderContext & r)
 
 void RoundTextBox::renderContent(Luminous::RenderContext & r)
 {
-	Luminous::GLContext::Guard lock(r.glContext()->mutex());
+	Luminous::GLContext::Guard lock(r.glContext());
 
 	// Get the basic box from standard widgets.
 	glDisable(GL_TEXTURE_2D);
