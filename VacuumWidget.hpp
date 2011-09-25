@@ -25,7 +25,7 @@ class VacuumWidget : public virtual MultiWidgets::Widget
 
 	private:
 	float m_thickness;
-        float m_arc;
+    float m_arc;
 	// We draw arcs inside the donuts with this color:
 	Radiant::Color m_arcColor;
 };

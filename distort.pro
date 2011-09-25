@@ -7,7 +7,8 @@ SOURCES += Main.cpp \
     widgetlist.cpp \
     VacuumWidget.cpp \
     wordreader.cpp \
-    RoundTextBox.cpp
+    RoundTextBox.cpp \
+    logger.cpp
 
 exists(/home/loop/multitouch/cornerstone) {
 	INCLUDEPATH += /home/loop/multitouch/cornerstone/ /home/loop/multitouch/cornerstone/multitude
@@ -18,7 +19,7 @@ LIBS += -lMultiWidgets -lRadiant -lLuminous -lPoetic -lValuable -lFluffy -lReson
 LIBS += -lSDLmain
 linux-* { LIBS += -lThreadedRendering }
 
-HEADERS += distortwidget.hpp widgetlist.hpp RotatorOperator.hpp VacuumWidget.hpp wordreader.hpp RoundTextBox.hpp
+HEADERS += distortwidget.hpp widgetlist.hpp RotatorOperator.hpp VacuumWidget.hpp wordreader.hpp RoundTextBox.hpp logger.hpp
 
 TARGET = vacuum
 

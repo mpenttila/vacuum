@@ -40,7 +40,7 @@ class WordReader {
 		
 		// Returns null if no such word
 		TargetWord getWord(int player, int sentenceNumber, int wordNumber);
-		int maxSentence()
+		size_t maxSentence()
 		{ return sentences[0].size(); }
 		size_t sentenceLength(int sentenceId)
 		{ return sentences[0][sentenceId-1].size(); }

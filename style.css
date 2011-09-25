@@ -94,6 +94,13 @@ CollectedWordsWidget {
 	border-width: 0px;
 }
 
+WinnerLabel{
+	font-name: "DroidSans-Bold.ttf";	
+	font-size: 64px;
+	foreground: #FFFFFFFF;
+	color: #FFFFFF00;
+}
+
 CollectedWord {
 	font-name: "LiberationSerif-Regular.ttf";
 	color: #00000000;

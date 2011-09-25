@@ -63,7 +63,7 @@ WordReader::WordReader(int playerCount) : _playerCount(playerCount) {
 				else{
 					std::cout << "Incomplete line in file targetwords." << i << ".txt" << " sentence " << sentencenumber << std::endl;
 				}
-				float width;
+				float width = 0.0;
 				part = strtok(NULL, ";");
 				if(part != NULL){
 					width = atof(part);
@@ -71,7 +71,7 @@ WordReader::WordReader(int playerCount) : _playerCount(playerCount) {
 				else{
 					std::cout << "Incomplete line in file targetwords." << i << ".txt" << " sentence " << sentencenumber << std::endl;
 				}
-				float distance;
+				float distance = 0.0;
 				part = strtok(NULL, ";");
 				if(part != NULL){
 					distance = atof(part);

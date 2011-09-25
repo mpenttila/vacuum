@@ -7,8 +7,8 @@
   VacuumWidget::VacuumWidget(MultiWidgets::Widget * parent)
     : Widget(parent),
       m_thickness(25),
-      m_arcColor("#ffffffdd"),
-      m_arc(0.1)
+      m_arc(0.1),
+      m_arcColor("#ffffffdd")
   {
        // setSize(Nimble::Vector2(200, 200));
       //  setColor(Nimble::Vector4(0.4, 1.0f - 0.2, 1.0, 0.97));

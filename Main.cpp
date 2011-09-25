@@ -27,6 +27,7 @@ typedef MultiWidgets::SimpleSDLApplication GfxApp;
 #include "VacuumWidget.hpp"
 #include "wordreader.hpp"
 #include "RoundTextBox.hpp"
+#include "logger.hpp"
 
 #include <vector>
 namespace {
@@ -207,6 +208,12 @@ public:
 		m_yloc += tb->width();
 	}
 	
+	void clear(){
+		deleteChildren();
+		m_yloc = 0;
+		m_xloc = 30;
+	}
+	
 	int m_yloc;
 	int m_xloc;
 	
@@ -316,7 +323,29 @@ public:
 			++m_currentsentence;
 			if(m_currentsentence > wordReader.maxSentence()){
 				// End
+				logger.endGame(m_playerScore, m_players);
+				int winningPlayer = 0;
+				int winningScore = m_playerScore[0];
+				for(int i = 1; i < m_players; i++){
+					if(m_playerScore[i] > winningScore){
+						winningPlayer = i;
+						winningScore = m_playerScore[i];
+					}
+				}
+				MyApplication& app = *MyApplication::me;
+				std::string btnText = std::string("Player ") + Radiant::StringUtils::stringify(winningPlayer+1) + std::string(" wins!");
+				MultiWidgets::TextBox * winnerLabel = new MultiWidgets::TextBox(this, btnText.c_str(), MultiWidgets::TextBox::VCENTER | MultiWidgets::TextBox::HCENTER);
+				winnerLabel->setCSSType("WinnerLabel");
+				winnerLabel->setStyle(style());
+				winnerLabel->setWidth(winnerLabel->totalTextAdvance() + 300);
+				winnerLabel->setLocation(app.size().maximum() * 0.5f - winnerLabel->width()/2, app.size().minimum() * 0.5f - winnerLabel->height()/2);
+				winnerLabel->setInputTransparent(true);
+				
 				return;
+			}
+			// Clear collected words from "answerboards"
+			for(int i = 0; i < m_players; ++i){
+				m_collectedWords[i]->clear();
 			}
 			m_currentword = 1;
 		}
@@ -346,6 +375,8 @@ public:
 		}
 		else if(Radiant::StringUtils::beginsWith(s, "word-acquired")){
 			int player = s[s.size()-1] - '0';
+			TargetWord currentWord = wordReader.getWord(player, m_currentsentence, m_currentword);
+			logger.logAcquire(player, m_currentsentence, m_currentword, currentWord.word, currentWord.width, currentWord.distance);
 			std::cout << "word acquired by player " << player << std::endl;
 			++m_playersPassed;
 			if(m_playersPassed == 1){
@@ -357,6 +388,7 @@ public:
 			eventSend("clear-widget", data);
 		}
 		else if(Radiant::StringUtils::beginsWith(s, "clear-widget")){
+			logger.endRound();
 			int player = bd.readInt32();
 			m_collectedWords[player]->addWord((wordReader.getWord(player, m_currentsentence, m_currentword)).word);
 			m_currentWordWidgets[player]->raiseFlag(RoundTextBox::DELETE_ME);
@@ -370,12 +402,11 @@ public:
 		}
 	}
 
-	void gotoLevel(int sentenceid, int wordid) {
+	void gotoLevel(unsigned int sentenceid, unsigned int wordid) {
 		Nimble::RandomUniform rnd(55);
 		m_playersPassed = 0;
 		// delete everything, create again
 
-		float maxH = 10;
 		MyApplication& app = *MyApplication::me;
 
 		MultiWidgets::Widget::ChildIterator it;
@@ -444,16 +475,15 @@ public:
 			// Add widget to vector to find it later
 			m_currentWordWidgets.push_back(tb);
 		}
-		std::string w;
-
-		m_levelStartedAt = Radiant::TimeStamp::getTime();
+		
+		logger.startRound();
 	}
 
 	std::vector<std::vector<Line> > m_lines;
 	std::vector<std::vector<std::string> > m_sentences;
 	std::vector<std::vector<std::string> > m_wordLists;
-	int m_currentsentence;
-	int m_currentword;
+	unsigned int m_currentsentence;
+	unsigned int m_currentword;
 
 	std::vector<CollectedWordsWidget*> m_collectedWords;
 	std::vector<RoundTextBox*> m_startButtons;
@@ -462,8 +492,6 @@ public:
 	//bool m_playerFinished[2];
 	std::vector<RoundTextBox*> m_currentWordWidgets;
 	std::vector<MultiWidgets::TextBox*> m_scoreWidgets;
-	
-	Radiant::TimeStamp m_levelStartedAt;
 
 	Valuable::ValueInt m_duplicateCount;
 	int m_players;
@@ -473,6 +501,7 @@ public:
 	DistortWidget * d;
 
 	WordReader wordReader;
+	Logger logger;
 };
 
 int main(int argc, char ** argv)
@@ -539,13 +568,6 @@ int main(int argc, char ** argv)
 		levels.push_back(Radiant::StringUtils::stringify(i));
 	}
 
-	bool rotation = true;
-	float maxH = 10;
-	/*
-	for (int i=0; i < levelCount; ++i) {
-		wg->addLevel(levels[i]);
-	}
-	*/
 	wg->initializeLevel();
 	wg->setStyle(app.style());
 
