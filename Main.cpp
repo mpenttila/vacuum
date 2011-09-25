@@ -154,7 +154,6 @@ void backgroundify(MultiWidgets::Widget * w)
 			w->setColor(1, 1, 1, 1);
 			w->recursiveSetAlpha(0.0f);
 			MyApplication::me->overlay()->addChild(w);
-			std::cout << "Creating clone" << std::endl;
 			/*
 			WidgetList * list = dynamic_cast<WidgetList*>(w);
 			WidgetList * clone = list->clone();
@@ -234,7 +233,11 @@ public:
 
 		m_collectedWords.resize(players);
 		m_startButtons.resize(players);
-		m_playerReadyToStart = {false, false};
+		m_scoreWidgets.resize(players);
+		for(int i = 0; i < 2; i++){
+			m_playerReadyToStart[i] = false;
+			m_playerScore[i] = 0;
+		}
 
 		d = _d;
 
@@ -242,28 +245,40 @@ public:
 		int preH = 200;
 		int preW = 800;
 		Nimble::Vector2 previewLocs[] = {
-			Nimble::Vector2(0, sz.y/2 + preW/2),
-			Nimble::Vector2(sz.x, sz.y/2 - preW/2)
+			Nimble::Vector2(0, sz.y - preH),
+			Nimble::Vector2(sz.x - preW, sz.y - preH)
 		};
 
 		for (int i=0; i < players; ++i) {
 			m_collectedWords[i] = new CollectedWordsWidget(this);
 			m_collectedWords[i]->setWidth(preW);
 			m_collectedWords[i]->setHeight(preH);
-			m_collectedWords[i]->setRotationAboutCenter(-Nimble::Math::PI/2 + i*Nimble::Math::PI);
+			//m_collectedWords[i]->setRotationAboutCenter(-Nimble::Math::PI/2 + i*Nimble::Math::PI);
 			m_collectedWords[i]->setLocation(previewLocs[i]);
 			m_collectedWords[i]->setInputTransparent(true);
 			
 			std::string buttonName = std::string("P") + Radiant::StringUtils::stringify(i+1) + std::string(" Start");
 			std::string buttonEvent = std::string("start-button-pressed-") + Radiant::StringUtils::stringify(i);
-			m_startButtons[i] = new MultiWidgets::TextBox(this, buttonName.c_str(), MultiWidgets::TextBox::VCENTER | MultiWidgets::TextBox::HCENTER);
+			m_startButtons[i] = new RoundTextBox(this, buttonName.c_str(), MultiWidgets::TextBox::VCENTER | MultiWidgets::TextBox::HCENTER);
 			m_startButtons[i]->eventAddListener("interactionbegin", buttonEvent.c_str(), this);
 			m_startButtons[i]->setCSSType("StartButton");
 			m_startButtons[i]->setStyle(style());
-			m_startButtons[i]->setLocation(sz.x/2 - 175 + i * 150, sz.y/2 - 35);
+			/* Set width to 20 mm */
+			int startWidth = Nimble::Math::Round(sz.x / m_physicalWidth * 20);
+			m_startButtons[i]->setWidth(startWidth);
+			m_startButtons[i]->setLocation(sz.x/2 - startWidth - 50 + (100 + startWidth) * i, sz.y/2 - startWidth);
 			m_startButtons[i]->setInputFlags(MultiWidgets::Widget::INPUT_USE_TAPS);
 			m_startButtons[i]->setDepth(0);
 			m_startButtons[i]->setIsVisible(false);
+			
+			m_scoreWidgets[i] = new MultiWidgets::TextBox(this, 0, MultiWidgets::TextBox::HCENTER);
+			m_scoreWidgets[i]->setCSSType("ScoreWidget");
+			m_scoreWidgets[i]->setStyle(style());
+			m_scoreWidgets[i]->setText(std::string("0"));
+			m_scoreWidgets[i]->setWidth(m_scoreWidgets[i]->totalTextAdvance() * 2 + 50);
+			m_scoreWidgets[i]->setInputTransparent(true);
+			m_scoreWidgets[i]->setColor(0, 0, 0, 0);
+			m_scoreWidgets[i]->setLocation(m_startButtons[i]->location().x, 100);
 			
 		}
 
@@ -326,7 +341,6 @@ public:
 			}
 			for (int i=0; i < m_players; ++i) {
 				m_startButtons[i]->setIsVisible(false);
-				//deleteChild(m_startButtons[i]);
 			}
 			gotoLevel(m_currentsentence, m_currentword);
 		}
@@ -334,14 +348,16 @@ public:
 			int player = s[s.size()-1] - '0';
 			std::cout << "word acquired by player " << player << std::endl;
 			++m_playersPassed;
+			if(m_playersPassed == 1){
+				++m_playerScore[player];
+				m_scoreWidgets[player]->setText(Radiant::StringUtils::stringify(m_playerScore[player]));
+			}
 			Radiant::BinaryData data;
 			data.writeInt32(player);
 			eventSend("clear-widget", data);
 		}
 		else if(Radiant::StringUtils::beginsWith(s, "clear-widget")){
 			int player = bd.readInt32();
-			std::cout << "clear-widget received, player: " << player << std::endl;
-			std::cout << "m_currentWordWidgets size " << m_currentWordWidgets.size() << std::endl;
 			m_collectedWords[player]->addWord((wordReader.getWord(player, m_currentsentence, m_currentword)).word);
 			m_currentWordWidgets[player]->raiseFlag(RoundTextBox::DELETE_ME);
 			if(m_playersPassed == m_players){
@@ -349,94 +365,9 @@ public:
 				initializeLevel();
 			}
 		}
-
-/*
-		if (Radiant::StringUtils::beginsWith(s, "submit-button-pressed")) {
-			// must take at least 3 seconds
-			if (m_levelStartedAt.sinceSecondsD() < 3.0f) {
-				return;
-			}
-
-			// go through all sentences
-			int idx = s[s.size()-1] - '0';
-			AnswerBoard* answerBoard = m_answerBoards[idx];
-
-			DistortWidget* dw = dynamic_cast<DistortWidget*>(MyApplication::me->overlay());
-			assert(dw != 0);
-			dw->removeStaticObject(m_previews[idx]);
-
-			std::vector<bool> found(m_lines[m_current].size(), false);
-
-			// go through all the word lists in answer board, see if they match something
-			for (MultiWidgets::Widget::ChildIterator it = answerBoard->childBegin();
-			        it != answerBoard->childEnd(); ++it) {
-				WidgetList * wl = dynamic_cast<WidgetList*>(*it);
-				if (!wl)
-					continue;
-
-				std::string txt;
-				for (int i=0; i < wl->itemCount(); ++i) {
-					MultiWidgets::TextBox * tb = dynamic_cast<MultiWidgets::TextBox*>(wl->getItem(i));
-					txt += Radiant::StringUtils::stdWstringToStdString(tb->text()) + ' ';
-				}
-
-				Radiant::info("Player %d answer: %s", idx, txt.c_str());
-
-				std::vector<Line>& lines = m_lines[m_current];
-
-				for (int i=0; i < lines.size(); ++i) {
-					if (found[i])
-						continue;
-
-					Line& line = lines[i];
-
-					if (wl->itemCount() != line.size())
-						continue;
-
-					int j;
-					for (j=0; j < line.size(); ++j) {
-						MultiWidgets::TextBox * tb = dynamic_cast<MultiWidgets::TextBox*>(wl->getItem(j));
-						if (!tb)
-							continue;
-
-						std::string txt = Radiant::StringUtils::stdWstringToStdString(tb->text());
-						if (!cmp_string_ascii_only(txt, line[j]))
-							break;
-					}
-					if (j == line.size())
-						found[i] = true;
-				}
-			}
-
-
-
-			int correct=0;
-			for (int i=0; i < found.size(); ++i) {
-				if (found[i])
-					++correct;
-			}
-
-			if (true) {
-				Radiant::info("Level %d passed for player %d: took %lf seconds; %d/%d correct; %d items on answer board",
-				              m_current,
-				              idx,
-				              m_levelStartedAt.sinceSecondsD(),
-				              correct, m_lines[m_current].size(),
-				              answerBoard->answerCount()
-				             );
-				m_playersPassed++;
-				///@todo sprinkle words from answerboard around?
-				m_answerBoards[idx]->setIsVisible(false);
-				m_previews[idx]->setIsVisible(false);
-				if (m_playersPassed == m_players) {
-
-					gotoLevel(m_current + 1);
-				}
-			}
-		} else {
+		else {
 			Parent::processMessage(msg, bd);
 		}
-*/
 	}
 
 	void gotoLevel(int sentenceid, int wordid) {
@@ -471,32 +402,49 @@ public:
 
 			tb->setStyle(app.style());
 			tb->setText(word.word);
-			// Word width is in millimeters, have to calculate pixel width
+			// Word width and distance is in millimeters, have to calculate pixel width and location
 			int pixelWidth = Nimble::Math::Round((double)app.size().maximum() / m_physicalWidth * word.width);
+			int x = Nimble::Math::Round((double)app.size().maximum() / m_physicalWidth * word.distance);
+			if(i == 0){
+				// To left side, calculate from start button left edge to word widget right edge
+				int edge = m_startButtons[i]->location().x;
+				x = edge - x - pixelWidth;
+				if(x < 0){
+					x = 0;
+					std::cout << "WARNING: Requested distance " << word.distance << " mm does not fit on current screen (width " << m_physicalWidth <<" mm)." << std::endl;
+				}
+			}
+			else{
+				// To right side, calculate from start button right edge to word widget left edge
+				int edge = m_startButtons[i]->location().x + m_startButtons[i]->size().x;
+				x = edge + x;
+				if((x + pixelWidth) > app.size().maximum()){
+					x = app.size().maximum() - pixelWidth;
+					std::cout << "WARNING: Requested distance " << word.distance << " mm does not fit on current screen width (" << m_physicalWidth <<" mm)." << std::endl;
+				}
+			}
+			
 			tb->setWidth(pixelWidth);
-			tb->setHeight(word.width);
+			tb->setHeight(pixelWidth);
 			tb->setAlignFlags(MultiWidgets::TextBox::HCENTER | MultiWidgets::TextBox::VCENTER);
-			tb->setLocation(Nimble::Vector2(word.x, word.y));
+			tb->setLocation(Nimble::Vector2(x, app.size().minimum()/2 - pixelWidth/2));
+			
+			std::cout << "Widget calculated pixel width: " << pixelWidth << " location: x " << tb->location().x << " y " << tb->location().y << std::endl;
+			
 			tb->raiseFlag(RoundTextBox::LOCK_DEPTH);
+			tb->addOperator(new MultiWidgets::StayInsideParentOperator());
 			std::string eventname = std::string("word-acquired-") + Radiant::StringUtils::stringify(i);
 			tb->eventAddListener("interactionbegin", eventname.c_str(), this);
+			while(tb->lineCount() > 1){
+				int faceSize = tb->faceSize()-1;
+				tb->setFaceSize(faceSize);
+				if(faceSize == 6) break;
+			}
 			
 			// Add widget to vector to find it later
 			m_currentWordWidgets.push_back(tb);
 		}
 		std::string w;
-
-/*		for (int i=0; i < m_lines[m_current].size(); ++i) {
-			Line& line = m_lines[m_current][i];
-			for (int j=0; j < line.size(); ++j)
-				w += line[j] + ' ';
-			w += "\n";
-		}
-
-
-		Radiant::info("Starting level %d: poem:\n %s",
-		              m_current, w.c_str());
-*/
 
 		m_levelStartedAt = Radiant::TimeStamp::getTime();
 	}
@@ -508,16 +456,13 @@ public:
 	int m_currentword;
 
 	std::vector<CollectedWordsWidget*> m_collectedWords;
-	std::vector<MultiWidgets::TextBox*> m_startButtons;
+	std::vector<RoundTextBox*> m_startButtons;
 	bool m_playerReadyToStart[2];
+	int m_playerScore[2];
 	//bool m_playerFinished[2];
 	std::vector<RoundTextBox*> m_currentWordWidgets;
+	std::vector<MultiWidgets::TextBox*> m_scoreWidgets;
 	
-	/*
-	MultiWidgets::TextBox * m_sentenceBox;
-	MultiWidgets::TextBox * m_submit;
-	AnswerBoard * m_answerBoard;
-	*/
 	Radiant::TimeStamp m_levelStartedAt;
 
 	Valuable::ValueInt m_duplicateCount;

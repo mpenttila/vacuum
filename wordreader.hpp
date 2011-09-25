@@ -7,10 +7,8 @@
 struct TargetWord {
 	int id;
 	std::string word;
-	int x;
-	int y;
-	int height;
 	double width;
+	double distance;
 };
 
 class Sentence{

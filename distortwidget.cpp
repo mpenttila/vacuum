@@ -196,7 +196,7 @@ void DistortWidget::ensureWidgetsHaveBodies() {
 
 			b2FixtureDef fixtureDef;
 			b2CircleShape circle;
-			b2PolygonShape box;
+			//b2PolygonShape box;
 
 			if(type.compare("VacuumWidget") == 0) {
 				// Make a bigger shape than the visible widget
@@ -205,13 +205,17 @@ void DistortWidget::ensureWidgetsHaveBodies() {
 				fixtureDef.shape = &circle;
 			}
 			else {
-				box.SetAsBox(toBox2D(sz).x, toBox2D(sz).y);
-				fixtureDef.shape = &box;
+				//box.SetAsBox(toBox2D(sz).x, toBox2D(sz).y);
+				//fixtureDef.shape = &box;
+				circle.m_radius = toBox2D(sz).x;
+				fixtureDef.shape = &circle;
 			}
 			fixtureDef.density = Nimble::Math::Max(1.0f/(4*(toBox2D(sz).x*toBox2D(sz).y)), 1e-5f);
 
 			fixtureDef.friction = 0.1f;
 			body->CreateFixture(&fixtureDef);
+			// Prevent rotation
+			body->SetAngularDamping(99.0f);
 			m_bodies[*it] = body;
 		}
 		++it;
@@ -255,18 +259,8 @@ void DistortWidget::applyForceToBodies(float dt) {
 				vel = vectorOffset(p);
 				vel *= 5;
 
-				//std::cout << "velocity: " << vel << std::endl;
 
 				if(vel.x > 0.01 || vel.y > 0.01 || vel.x < -0.01 || vel.y < -0.01) {
-					/*					
-					if(m_mousejoints.count(*it) > 0){
-						std::cout << "Erasing mousejoint" << std::endl;
-						b2MouseJoint * joint = m_mousejoints[*it];
-						m_world.DestroyJoint(joint);
-						m_mousejoints.erase(*it);
-					}
-					*/
-					//(*it)->show();
 					(*it)->recursiveSetAlpha(0.5f);
 					body->ApplyLinearImpulse(b2Vec2(vel.x, vel.y), body->GetWorldPoint(toBox2D(v)));
 				}
@@ -353,11 +347,11 @@ void DistortWidget::addStaticBox(const Nimble::Rectangle& rect)
 	b2PolygonShape groundBox;
 	std::vector<Nimble::Vector2> corners;
 	rect.computeCorners(corners);
-	for (int i=0; i < corners.size(); ++i)
+	for (unsigned int i=0; i < corners.size(); ++i)
 		corners[i] = rect.center() - corners[i];
 
 	int n = corners.size();
-	for (int i=0; i < corners.size(); ++i) {
+	for (unsigned int i=0; i < corners.size(); ++i) {
 		groundBox.SetAsEdge(toBox2D(corners[i]), toBox2D(corners[(i+1)%n]));
 		/*
 				b2Vec2(corners[i].x, corners[i].y),
@@ -718,7 +712,7 @@ void DistortWidget::input(MultiWidgets::GrabManager & gm, float /*dt*/)
 		Nimble::Vector2 nDiff = diff * -1;
 		nDiff.normalize();
 
-		float lengthMultiplier = 1.0;//m_input_pull_type == INPUT_PULL_INVERSELY_PROPORTIONAL ? m_input_pull_intensity : 1.0f/m_input_pull_intensity;
+		//float lengthMultiplier = 1.0;//m_input_pull_type == INPUT_PULL_INVERSELY_PROPORTIONAL ? m_input_pull_intensity : 1.0f/m_input_pull_intensity;
 
 		Nimble::Vector2 l1[2];
 		Nimble::Vector2 l2[2];
@@ -762,10 +756,10 @@ void DistortWidget::input(MultiWidgets::GrabManager & gm, float /*dt*/)
 					continue;
 				}
 
-				float len = dir.length()*lengthMultiplier;
+				//float len = dir.length()*lengthMultiplier;
 
-				nn = Math::Min(nn, 1.0f);
-				float magnitude = nn*(m_input_pull_type == INPUT_PULL_INVERSELY_PROPORTIONAL ? len : 1.0f) * m_input_pull_intensity;
+				//nn = Math::Min(nn, 1.0f);
+				//float magnitude = nn*(m_input_pull_type == INPUT_PULL_INVERSELY_PROPORTIONAL ? len : 1.0f) * m_input_pull_intensity;
 				//float moveX = (diff.x*magnitude)/width();
 				//float moveY = (diff.y*magnitude)/height();
 

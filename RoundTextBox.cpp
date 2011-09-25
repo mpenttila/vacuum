@@ -44,6 +44,7 @@ RoundTextBox * RoundTextBox::clone(){
 	tb2->setScale(scale());
 	tb2->setRotation(rotation());
 	tb2->setType("clone");
+	tb2->setFaceSize(faceSize());
 	return tb2;	
 }
 

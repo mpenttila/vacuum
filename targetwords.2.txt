@@ -1,6 +1,6 @@
-#sentencenumber;wordnumber;word;width;x;y
-1;1;Omena;25.4;1200;600
-1;2;putoaa;10.6;1200;600
-1;3;puutarhassa;50.8;1200;600
-1;4;ilman;10.6;1200;600
-1;5;silminnakijoita;50.8;1200;600
+#sentencenumber;wordnumber;word;width (mm); distance (mm)
+1;1;Omena;25.4;10
+1;2;putoaa;10.6;203.2
+1;3;puutarhassa;50.8;203.2
+1;4;ilman;10.6;203.2
+1;5;silminnakijoita;50.8;203.2
