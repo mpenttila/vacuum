@@ -405,11 +405,6 @@ void DistortWidget::updateBodiesToWidgets() {
 	}
 }
 
-void DistortWidget::processGhosts()
-{
-	
-}
-
 void DistortWidget::update(float dt)
 {
 	MultiWidgets::Widget::update(dt);

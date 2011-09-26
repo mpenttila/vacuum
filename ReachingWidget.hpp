@@ -1,5 +1,5 @@
-#ifndef DISTORTWIDGET_H
-#define DISTORTWIDGET_H
+#ifndef REACHINGWIDGET_H
+#define REACHINGWIDGET_H
 
 #include <MultiWidgets/ImageWidget.hpp>
 #include <Radiant/Grid.hpp>
@@ -51,28 +51,17 @@ public:
 	void update(float dt);
 	void updateParticles(float dt);
 	void decayVectorField(Radiant::MemGrid32f (&field)[2], float dt);
-	void ensureWidgetsHaveBodies();
+	virtual void ensureWidgetsHaveBodies() = 0;
 	void ensureGroundInitialized();
-	void applyForceToBodies(float dt);
+	virtual void applyForceToBodies(float dt) = 0;
 	void updateBodiesToWidgets();
 	Nimble::Vector2 vectorValue(Nimble::Vector2 v);
 	Nimble::Vector2 vectorOffset(Nimble::Vector2 pos);
 	void blur(float ratio);
 	Nimble::Vector2 mapInput(Nimble::Vector2 v);
 	MultiWidgets::Widget * findChildInside(Luminous::Transformer & tr, Nimble::Vector2f loc, MultiWidgets::Widget * parent);
-	void input(MultiWidgets::GrabManager & gm, float dt);
-	void render(Luminous::RenderContext & r);
-
-	void addStaticDisk(void* id, Nimble::Vector2 center, float rad);
-	void removeStaticObject(void* id);
-	void addStaticBox(const Nimble::Rectangle& rect);
-	void addOutsideWidget(MultiWidgets::Widget * w, float density, float friction);
-
-	void addVacuumWidget(long fingerId, Nimble::Vector2 center);
-	void deleteVacuumWidget(long fingerId);
-	void modifyVacuumWidget(long fingerId, double rotation, float intensity);
-
-	void processGhosts();
+	//virtual void input(MultiWidgets::GrabManager & gm, float dt) = 0;
+	//void render(Luminous::RenderContext & r);
 
 	int w, h;
 	Radiant::MemGrid32f m_vectorFields[2];
@@ -113,4 +102,4 @@ public:
 	std::map<MultiWidgets::Widget*, b2MouseJoint*> m_mousejoints;
 };
 
-#endif // DISTORTWIDGET_H
+#endif // REACHINGWIDGET_H
