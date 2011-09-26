@@ -238,6 +238,13 @@ public:
 		setCSSType("WordGame");
 		setAutoBringToTop(false);
 
+		// Name events this class will handle
+		eventAddIn("clear-widget");
+		eventAddIn("start-button-pressed-0");
+		eventAddIn("start-button-pressed-1");
+		eventAddIn("word-acquired-0");
+		eventAddIn("word-acquired-1");
+
 		m_collectedWords.resize(players);
 		m_startButtons.resize(players);
 		m_scoreWidgets.resize(players);
@@ -271,12 +278,12 @@ public:
 			m_startButtons[i]->setCSSType("StartButton");
 			m_startButtons[i]->setStyle(style());
 			/* Set width to 20 mm */
-			int startWidth = Nimble::Math::Round(sz.x / m_physicalWidth * 20);
+			int startWidth = Nimble::Math::Round(sz.x / m_physicalWidth * 30);
 			m_startButtons[i]->setWidth(startWidth);
 			m_startButtons[i]->setLocation(sz.x/2 - startWidth - 50 + (100 + startWidth) * i, sz.y/2 - startWidth);
 			m_startButtons[i]->setInputFlags(MultiWidgets::Widget::INPUT_USE_TAPS);
 			m_startButtons[i]->setDepth(0);
-			m_startButtons[i]->setIsVisible(false);
+			m_startButtons[i]->setVisible(false);
 			
 			m_scoreWidgets[i] = new MultiWidgets::TextBox(this, 0, MultiWidgets::TextBox::HCENTER);
 			m_scoreWidgets[i]->setCSSType("ScoreWidget");
@@ -291,6 +298,7 @@ public:
 
 		setInputFlags(MultiWidgets::Widget::INPUT_PASS_TO_CHILDREN);
 		
+		eventAddOut("clear-widget");
 		eventAddListener("clear-widget", "clear-widget", this);
 	}
 
@@ -351,7 +359,7 @@ public:
 		}
 		for(int i = 0; i < m_players; ++i){
 			m_playerReadyToStart[i] = false;
-			m_startButtons[i]->setIsVisible(true);
+			m_startButtons[i]->setVisible(true);
 		}
 		m_playersPassed = 0;
 	}
@@ -369,7 +377,7 @@ public:
 				}
 			}
 			for (int i=0; i < m_players; ++i) {
-				m_startButtons[i]->setIsVisible(false);
+				m_startButtons[i]->setVisible(false);
 			}
 			gotoLevel(m_currentsentence, m_currentword);
 		}
@@ -377,7 +385,7 @@ public:
 			int player = s[s.size()-1] - '0';
 			TargetWord currentWord = wordReader.getWord(player, m_currentsentence, m_currentword);
 			logger.logAcquire(player, m_currentsentence, m_currentword, currentWord.word, currentWord.width, currentWord.distance);
-			std::cout << "word acquired by player " << player << std::endl;
+			//std::cout << "word acquired by player " << player << std::endl;
 			++m_playersPassed;
 			if(m_playersPassed == 1){
 				++m_playerScore[player];
@@ -412,11 +420,13 @@ public:
 		MultiWidgets::Widget::ChildIterator it;
 		for (it = app.root()->childBegin(); it != app.root()->childEnd(); ++it) {
 			if (dynamic_cast<RoundTextBox*>(*it))
-				app.root()->deleteChild(*it);
+				//app.root()->deleteChild(*it);
+				(*it)->raiseFlag(RoundTextBox::DELETE_ME);
 		}
 		for (it = app.overlay()->childBegin(); it != app.overlay()->childEnd(); ++it) {
 			if (dynamic_cast<RoundTextBox*>(*it))
-				app.overlay()->deleteChild(*it);
+				//app.overlay()->deleteChild(*it);
+				(*it)->raiseFlag(RoundTextBox::DELETE_ME);
 		}
 
 		if (sentenceid > wordReader.maxSentence())
@@ -460,7 +470,7 @@ public:
 			tb->setAlignFlags(MultiWidgets::TextBox::HCENTER | MultiWidgets::TextBox::VCENTER);
 			tb->setLocation(Nimble::Vector2(x, app.size().minimum()/2 - pixelWidth/2));
 			
-			std::cout << "Widget calculated pixel width: " << pixelWidth << " location: x " << tb->location().x << " y " << tb->location().y << std::endl;
+			//std::cout << "Widget calculated pixel width: " << pixelWidth << " location: x " << tb->location().x << " y " << tb->location().y << std::endl;
 			
 			tb->raiseFlag(RoundTextBox::LOCK_DEPTH);
 			tb->addOperator(new MultiWidgets::StayInsideParentOperator());

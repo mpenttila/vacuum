@@ -82,7 +82,7 @@ WordReader::WordReader(int playerCount) : _playerCount(playerCount) {
 
 				TargetWord tw = {wordnumber, word, width, distance};
 				sentence.add(tw);
-				std::cout << "read word: " << tw.word << " w: " << tw.width << " d: " << tw.distance << std::endl;
+				//std::cout << "read word: " << tw.word << " w: " << tw.width << " d: " << tw.distance << std::endl;
 			}
 			file.close();
 			sentences[i-1].push_back(sentence);
