@@ -289,10 +289,11 @@ public:
 			m_scoreWidgets[i]->setCSSType("ScoreWidget");
 			m_scoreWidgets[i]->setStyle(style());
 			m_scoreWidgets[i]->setText(std::string("0"));
-			m_scoreWidgets[i]->setWidth(m_scoreWidgets[i]->totalTextAdvance() * 2 + 50);
+			int scoreWidth = m_scoreWidgets[i]->totalTextAdvance() * 2 + 50;
+			m_scoreWidgets[i]->setWidth(scoreWidth);
 			m_scoreWidgets[i]->setInputTransparent(true);
 			m_scoreWidgets[i]->setColor(0, 0, 0, 0);
-			m_scoreWidgets[i]->setLocation(m_startButtons[i]->location().x, 100);
+			m_scoreWidgets[i]->setLocation(sz.x/2 - scoreWidth -50 + (100 + scoreWidth) * i, 100);
 			
 		}
 

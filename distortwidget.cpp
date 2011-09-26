@@ -210,7 +210,8 @@ void DistortWidget::ensureWidgetsHaveBodies() {
 				circle.m_radius = toBox2D(sz).x;
 				fixtureDef.shape = &circle;
 			}
-			fixtureDef.density = Nimble::Math::Max(1.0f/(4*(toBox2D(sz).x*toBox2D(sz).y)), 1e-5f);
+			fixtureDef.density = Nimble::Math::Max(1.0f/((toBox2D(sz).x*toBox2D(sz).y)), 0.1f);
+			//std::cout << "density: " << fixtureDef.density << std::endl;
 
 			fixtureDef.friction = 0.1f;
 			body->CreateFixture(&fixtureDef);
