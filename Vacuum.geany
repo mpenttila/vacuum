@@ -10,19 +10,25 @@ indent_mode=2
 name=Vacuum
 base_path=/home/wox/vacuum/
 description=
+make_in_base_path=true
+run_cmd=
 
 [long line marker]
 long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=2
-FILE_NAME_0=16718;C++;0;16;1;1;0;/home/wox/vacuum/distortwidget.cpp;0;4
-FILE_NAME_1=2691;C;0;16;1;1;0;/home/wox/vacuum/distortwidget.h;0;4
-FILE_NAME_2=20428;C++;0;16;1;1;0;/home/wox/vacuum/Main.cpp;0;4
-FILE_NAME_3=0;C;0;16;1;1;0;/home/wox/vacuum/RotatorOperator.h;0;4
-FILE_NAME_4=0;C++;0;16;1;1;0;/home/wox/vacuum/VacuumWidget.cpp;0;4
-FILE_NAME_5=571;C++;0;16;1;1;0;/home/wox/vacuum/VacuumWidget.hpp;0;4
-FILE_NAME_6=0;C++;0;16;1;1;0;/home/wox/vacuum/widgetlist.cpp;0;4
-FILE_NAME_7=0;C;0;16;1;1;0;/home/wox/vacuum/widgetlist.h;0;4
-FILE_NAME_8=453;CSS;0;16;1;1;0;/home/wox/vacuum/style.css;0;4
+current_page=1
+FILE_NAME_0=22233;C++;0;16;1;1;0;/home/wox/vacuum/distortwidget.cpp;0
+FILE_NAME_1=9462;C++;0;16;1;1;0;/home/wox/vacuum/Main.cpp;0
+FILE_NAME_2=233;C++;0;16;1;1;0;/home/wox/vacuum/VacuumWidget.cpp;0
+FILE_NAME_3=634;C++;0;16;1;1;0;/home/wox/vacuum/VacuumWidget.hpp;0
+FILE_NAME_4=195;None;0;16;1;1;0;/home/wox/vacuum/targetwords.1.txt;0
+FILE_NAME_5=198;None;0;16;1;1;0;/home/wox/vacuum/targetwords.2.txt;0
+FILE_NAME_6=1806;C++;0;16;1;1;0;/home/wox/vacuum/wordreader.cpp;0
+FILE_NAME_7=760;C++;0;16;1;1;0;/home/wox/vacuum/wordreader.hpp;0
+FILE_NAME_8=1322;C++;0;16;1;1;0;/home/wox/vacuum/RoundTextBox.cpp;0
+FILE_NAME_9=0;C++;0;16;1;1;0;/home/wox/vacuum/RoundTextBox.hpp;0
+FILE_NAME_10=1730;CSS;0;16;1;1;0;/home/wox/vacuum/style.css;0
+FILE_NAME_11=653;C++;0;16;1;1;0;/home/wox/vacuum/logger.cpp;0
+FILE_NAME_12=664;C++;0;16;1;1;0;/home/wox/vacuum/logger.hpp;0

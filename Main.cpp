@@ -9,7 +9,6 @@
 #include <Radiant/FileUtils.hpp>
 #include <Radiant/TimeStamp.hpp>
 #include <Nimble/Random.hpp>
-#include <RotatorOperator.hpp>
 
 //#define USE_THREADED
 
@@ -225,7 +224,7 @@ class WordGameWidget : public MultiWidgets::Widget {
 
 public:
 
-	WordGameWidget(int players, MultiWidgets::Widget * p=0, DistortWidget * _d = 0, double physicalWidth = 0) :
+	WordGameWidget(int players, MultiWidgets::Widget * p=0, double physicalWidth = 0) :
 		Parent(p),
 		m_currentsentence(1),
 		m_currentword(0),
@@ -239,11 +238,15 @@ public:
 		setAutoBringToTop(false);
 
 		// Name events this class will handle
+		// Needed in API 1.2
+		/*
 		eventAddIn("clear-widget");
 		eventAddIn("start-button-pressed-0");
 		eventAddIn("start-button-pressed-1");
 		eventAddIn("word-acquired-0");
 		eventAddIn("word-acquired-1");
+		eventAddOut("clear-widget");
+		*/
 
 		m_collectedWords.resize(players);
 		m_startButtons.resize(players);
@@ -252,8 +255,6 @@ public:
 			m_playerReadyToStart[i] = false;
 			m_playerScore[i] = 0;
 		}
-
-		d = _d;
 
 		Nimble::Vector2 sz = MyApplication::me->size();
 		int preH = 200;
@@ -283,7 +284,7 @@ public:
 			m_startButtons[i]->setLocation(sz.x/2 - startWidth - 50 + (100 + startWidth) * i, sz.y/2 - startWidth);
 			m_startButtons[i]->setInputFlags(MultiWidgets::Widget::INPUT_USE_TAPS);
 			m_startButtons[i]->setDepth(0);
-			m_startButtons[i]->setVisible(false);
+			m_startButtons[i]->setIsVisible(false);
 			
 			m_scoreWidgets[i] = new MultiWidgets::TextBox(this, 0, MultiWidgets::TextBox::HCENTER);
 			m_scoreWidgets[i]->setCSSType("ScoreWidget");
@@ -299,7 +300,6 @@ public:
 
 		setInputFlags(MultiWidgets::Widget::INPUT_PASS_TO_CHILDREN);
 		
-		eventAddOut("clear-widget");
 		eventAddListener("clear-widget", "clear-widget", this);
 	}
 
@@ -360,7 +360,7 @@ public:
 		}
 		for(int i = 0; i < m_players; ++i){
 			m_playerReadyToStart[i] = false;
-			m_startButtons[i]->setVisible(true);
+			m_startButtons[i]->setIsVisible(true);
 		}
 		m_playersPassed = 0;
 	}
@@ -378,7 +378,7 @@ public:
 				}
 			}
 			for (int i=0; i < m_players; ++i) {
-				m_startButtons[i]->setVisible(false);
+				m_startButtons[i]->setIsVisible(false);
 			}
 			gotoLevel(m_currentsentence, m_currentword);
 		}
@@ -509,8 +509,6 @@ public:
 	int m_playersPassed;
 	double m_physicalWidth;
 
-	DistortWidget * d;
-
 	WordReader wordReader;
 	Logger logger;
 };
@@ -569,7 +567,7 @@ int main(int argc, char ** argv)
 	app.m_overlay = d;
 
 
-	WordGameWidget * wg = new WordGameWidget(players, app.root(), d, displayWidth);
+	WordGameWidget * wg = new WordGameWidget(players, app.root(), displayWidth);
 	wg->setDepth(-25);
 	wg->raiseFlag(WordGameWidget::LOCK_DEPTH);
 	wg->setAutoBringToTop(false);
