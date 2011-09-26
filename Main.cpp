@@ -21,7 +21,12 @@ typedef ThreadedRendering::SimpleThreadedApplication GfxApp;
 typedef MultiWidgets::SimpleSDLApplication GfxApp;
 #endif
 
-#include "distortwidget.hpp"
+#define VACUUM_MODE 0
+#define DISTORT_MODE 1
+
+#include "ReachingWidget.hpp"
+#include "DistortWidget.hpp"
+#include "VacuumReachingWidget.hpp"
 #include "widgetlist.hpp"
 #include "VacuumWidget.hpp"
 #include "wordreader.hpp"
@@ -75,9 +80,9 @@ class MyApplication : public GfxApp
 	typedef GfxApp Parent;
 public:
 	static MyApplication * me;
+	
 	MyApplication() : Parent(),
-		m_automaticRotation(false),
-		m_manualRotation(true)
+		reachingMode(VACUUM_MODE)
 	{
 		assert(!me);
 		me = this;
@@ -123,28 +128,21 @@ public:
 		}
 	}
 
-	DistortWidget * overlay() {
+	ReachingWidget * overlay() {
 		return m_overlay;
 	}
-	bool automaticRotation() {
-		return m_automaticRotation;
-	}
-	bool manualRotation() {
-		return m_manualRotation;
-	}
 
-	DistortWidget * m_overlay;
+	ReachingWidget * m_overlay;
 	std::list<CallBack> m_preUpdate;
 	std::list<CallBack> m_postUpdate;
 
-	bool m_automaticRotation;
-	bool m_manualRotation;
+	int reachingMode;
 };
 MyApplication * MyApplication::me = 0;
 
 void backgroundify(MultiWidgets::Widget * w)
 {
-	DistortWidget * d = MyApplication::me->overlay();
+	ReachingWidget * d = MyApplication::me->overlay();
 	float IDLE_TIMEOUT = d->getValue("idle-timeout")->asFloat();
 	float IDLE_OK = d->getValue("idle-delay")->asFloat();
 	float BG_ALPHA = d->getValue("background-alpha")->asFloat();
@@ -152,18 +150,20 @@ void backgroundify(MultiWidgets::Widget * w)
 		float idle = w->lastInteraction().sinceSecondsD();
 		if (idle > IDLE_TIMEOUT && !w->inputTransparent()) {
 			w->setColor(1, 1, 1, 1);
-			w->recursiveSetAlpha(0.0f);
-			MyApplication::me->overlay()->addChild(w);
-			/*
-			WidgetList * list = dynamic_cast<WidgetList*>(w);
-			WidgetList * clone = list->clone();
-			*/
-			RoundTextBox * tb = dynamic_cast<RoundTextBox*>(w);
-			RoundTextBox * clone = tb->clone();
-			clone->setType("clone");
-			clone->setInputTransparent(true);
-			d->m_static_to_moving[clone] = w;
-			d->m_moving_to_static[w] = clone;
+			// Only do this when in vacuum mode
+			if(MyApplication::me->reachingMode == VACUUM_MODE)
+			{
+				w->recursiveSetAlpha(0.0f);
+				MyApplication::me->overlay()->addChild(w);
+				RoundTextBox * tb = dynamic_cast<RoundTextBox*>(w);
+				RoundTextBox * clone = tb->clone();
+				clone->setType("clone");
+				clone->setInputTransparent(true);
+				d->addMovingAndStaticWidgetPair(clone, w);
+			}
+			else{
+				MyApplication::me->overlay()->addChild(w);
+			}
 		} else {
 			float t = 0.0f;
 			if (idle > IDLE_OK)
@@ -231,7 +231,8 @@ public:
 		m_players(players),
 		m_playersPassed(0),
 		m_physicalWidth(physicalWidth),
-		wordReader(players)
+		wordReader(players),
+		logger(MyApplication::me->reachingMode)
 	{
 		setName("WordGame");
 		setCSSType("WordGame");
@@ -441,7 +442,6 @@ public:
 
 			RoundTextBox * tb = new RoundTextBox(app.root(), 0, MultiWidgets::TextBox::HCENTER);
 			tb->setCSSClass("FloatingWord");
-
 			tb->setStyle(app.style());
 			tb->setText(word.word);
 			// Word width and distance is in millimeters, have to calculate pixel width and location
@@ -539,9 +539,9 @@ int main(int argc, char ** argv)
 			dirpath = argv[i+1];
 			++i;
 		} else if (r == "--arrows") {
-			featureFlags |= DistortWidget::FEATURE_ARROWS;
+			featureFlags |= ReachingWidget::FEATURE_ARROWS;
 		} else if (r == "--particles") {
-			featureFlags |= DistortWidget::FEATURE_PARTICLES;
+			featureFlags |= ReachingWidget::FEATURE_PARTICLES;
 		} else if (r == "--players" && (i+1) < argc) {
 			players = atoi(argv[++i]);
 		} else if (r == "--levels" && (i+1) < argc) {
@@ -549,11 +549,26 @@ int main(int argc, char ** argv)
 		} else if (r == "--displaywidth" && (i+1) < argc) {
 			// Should be millimeters
 			displayWidth = atof(argv[++i]);
+		} else if (r == "--mode" && (i+1) < argc) {
+			if ((std::string("distort")).compare(std::string(argv[++i])) == 0)
+			{
+				app.reachingMode = DISTORT_MODE;
+			}
 		}
-
 	}
 
-	DistortWidget * d = new DistortWidget(app.root());
+	// Introduce generic distant reaching widget
+	ReachingWidget * d;
+	if(app.reachingMode == DISTORT_MODE){
+		d = new DistortWidget(app.root());
+		std::cout << "Selected distant reaching mode: Distort" << std::endl;
+	}
+	else{
+		// Default to vacuum
+		d = new VacuumReachingWidget(app.root());
+		std::cout << "Selected distant reaching mode: Vacuum" << std::endl;
+	}
+		
 	d->setFeatureFlags(featureFlags);
 	d->setSize(app.root()->size());
 	d->setStyle(app.style());

@@ -1,15 +1,20 @@
 #include <algorithm>
 #include "logger.hpp"
 
-Logger::Logger() : gameNumber(0) {
+Logger::Logger(int mode) : gameNumber(0) {
 	time(&startTime);
 	localStartTime = localtime(&startTime);
 	char date[50];
 	strftime(date, sizeof(date), "%Y%m%d_%H%M", localStartTime);
-	const string logfilename(string(LOG_FILE) + string(date) + ".log");
+	string modeName;
+	if(mode == VACUUM_MODE) 
+		modeName = "Vacuum";
+	else 
+		modeName = "Distort";
+	const string logfilename(string(LOG_FILE) + string(date) + "_" + modeName + ".log");
 	logstream.open(logfilename.c_str());
 	if(logstream.is_open()){
-		logstream << "Vacuum expirement log file created on " << asctime (localStartTime) << endl;
+		logstream << modeName << " expirement log file created on " << asctime (localStartTime) << endl;
 		logstream << "player,sentence id,word id,word,width (mm),distance (mm),acquire time (ms)" << endl;
 	}
 }

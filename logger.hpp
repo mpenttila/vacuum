@@ -8,7 +8,9 @@
 #include <fstream>
 #include "boost/date_time/posix_time/posix_time.hpp"
 
-#define LOG_FILE "logs/vacuum_"
+#define LOG_FILE "logs/"
+#define VACUUM_MODE 0
+#define DISTORT_MODE 1
 
 using namespace std;
 using namespace boost::posix_time;
@@ -22,7 +24,7 @@ class Logger {
 		int gameNumber;
 	
 	public:
-		Logger();
+		Logger(int mode);
 		~Logger();
 		
 		void startRound();

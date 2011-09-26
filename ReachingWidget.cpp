@@ -1,4 +1,4 @@
-#include "distortwidget.hpp"
+#include "ReachingWidget.hpp"
 
 #include <Luminous/Utils.hpp>
 #include <Luminous/FramebufferObject.hpp>
@@ -10,18 +10,8 @@
 #define INPUT_PULL_NORMAL 0
 #define INPUT_PULL_INVERSELY_PROPORTIONAL 1
 
-namespace {
-// is point c left of line which goes through (a,b)
-// if determinant of
-// [ b.x-a.x c.x-a.x ]
-// [ b.y-a.y c.y-a.y ]
-// is > 0
-bool isLeftOfLine(Nimble::Vector2 a, Nimble::Vector2 b, Nimble::Vector2 c)
-{
-	return (b.x-a.x)*(c.y-a.y) - (c.x-a.x)*(b.y-a.y) > 0;
-}
-}
-struct DistortWidget::GLData : public Luminous::GLResource {
+/*
+struct ReachingWidget::GLData : public Luminous::GLResource {
 	GLData(Luminous::GLResources* res) :
 		Luminous::GLResource(res),
 		m_shader(0),
@@ -49,8 +39,9 @@ struct DistortWidget::GLData : public Luminous::GLResource {
 	Luminous::ContextVariableT<Luminous::Texture2D> m_tex[3];
 	Luminous::ContextVariableT<Luminous::Texture2D> m_particleTexture;
 };
+*/
 
-DistortWidget::DistortWidget(MultiWidgets::Widget * parent) :
+ReachingWidget::ReachingWidget(MultiWidgets::Widget * parent) :
 	MultiWidgets::Widget(parent),
 	m_featureFlags(this, "feature-flags", FEATURE_PARTICLES | FEATURE_VELOCITY_FIELD),
 	m_world(b2Vec2(0,0), true),
@@ -67,12 +58,11 @@ DistortWidget::DistortWidget(MultiWidgets::Widget * parent) :
 	m_particleAcc(0),
 	m_blurAcc(0)
 {
-	setCSSType("DistortWidget");
 	w = h = 0;
 	m_decayPerSec = 20.0f;
 }
 
-void DistortWidget::deleteChild(Widget *w)
+void ReachingWidget::deleteChild(Widget *w)
 {
 	if (m_bodies.count(w)) {
 		m_world.DestroyBody(m_bodies[w]);
@@ -81,12 +71,12 @@ void DistortWidget::deleteChild(Widget *w)
 	MultiWidgets::Widget::deleteChild(w);
 }
 
-void DistortWidget::setFeatureFlags(uint32_t flags)
+void ReachingWidget::setFeatureFlags(uint32_t flags)
 {
 	m_featureFlags = flags;
 }
 
-void DistortWidget::resize(int width, int height) {
+void ReachingWidget::resize(int width, int height) {
 	if (width == w && height == h)
 		return;
 
@@ -102,7 +92,7 @@ void DistortWidget::resize(int width, int height) {
 	}
 }
 
-void DistortWidget::updateParticles(float dt) {
+void ReachingWidget::updateParticles(float dt) {
 	static const float time_step = 0.75f;
 	m_particleAcc += dt;
 	Nimble::RandomUniform & rnd = Nimble::RandomUniform::instance();
@@ -147,7 +137,7 @@ void DistortWidget::updateParticles(float dt) {
 	}
 }
 
-void DistortWidget::decayVectorField(Radiant::MemGrid32f (&field)[2], float dt) {
+void ReachingWidget::decayVectorField(Radiant::MemGrid32f (&field)[2], float dt) {
 	float xmove = (m_decayPerSec * dt)/width();
 	float ymove = (m_decayPerSec * dt)/height();
 	float move = Nimble::Math::Max(xmove, ymove);
@@ -163,7 +153,7 @@ void DistortWidget::decayVectorField(Radiant::MemGrid32f (&field)[2], float dt) 
 	}
 }
 
-void DistortWidget::ensureGroundInitialized() {
+void ReachingWidget::ensureGroundInitialized() {
 	static bool groundInit = false;
 	const float border = 1.0f;
 	if (!groundInit) {
@@ -184,7 +174,7 @@ void DistortWidget::ensureGroundInitialized() {
 	}
 }
 
-void DistortWidget::updateBodiesToWidgets() {
+void ReachingWidget::updateBodiesToWidgets() {
 	for (std::map<void*, b2Body*>::iterator it = m_bodies.begin(); it != m_bodies.end(); ++it) {
 		b2Vec2 position = it->second->GetPosition();
 		float angle = it->second->GetAngle();
@@ -198,7 +188,7 @@ void DistortWidget::updateBodiesToWidgets() {
 	}
 }
 
-void DistortWidget::update(float dt)
+void ReachingWidget::update(float dt)
 {
 	MultiWidgets::Widget::update(dt);
 	if (m_featureFlags & FEATURE_VELOCITY_FIELD)
@@ -233,7 +223,7 @@ void DistortWidget::update(float dt)
 	updateBodiesToWidgets();
 }
 
-Nimble::Vector2 DistortWidget::vectorValue(Nimble::Vector2 v)
+Nimble::Vector2 ReachingWidget::vectorValue(Nimble::Vector2 v)
 {
 	int x = v.x * (w-1);
 	int y = v.y * (h-1);
@@ -257,12 +247,12 @@ Nimble::Vector2 DistortWidget::vectorValue(Nimble::Vector2 v)
 	return pos;
 }
 
-Nimble::Vector2 DistortWidget::vectorOffset(Nimble::Vector2 pos)
+Nimble::Vector2 ReachingWidget::vectorOffset(Nimble::Vector2 pos)
 {
 	return vectorValue(pos);
 }
 
-void DistortWidget::blur(float ratio)
+void ReachingWidget::blur(float ratio)
 {
 	if (ratio >= 1) return;
 	static const int rad = 1;
@@ -283,7 +273,7 @@ void DistortWidget::blur(float ratio)
 	}
 }
 
-Nimble::Vector2 DistortWidget::mapInput(Nimble::Vector2 v)
+Nimble::Vector2 ReachingWidget::mapInput(Nimble::Vector2 v)
 {
 	int x = v.x*w;
 	int y = v.y*h;
@@ -303,7 +293,7 @@ Nimble::Vector2 DistortWidget::mapInput(Nimble::Vector2 v)
 }
 
 /// go through all the children, find out if location is inside that widget
-MultiWidgets::Widget * DistortWidget::findChildInside(Luminous::Transformer & tr, Nimble::Vector2f loc, MultiWidgets::Widget * parent)
+MultiWidgets::Widget * ReachingWidget::findChildInside(Luminous::Transformer & tr, Nimble::Vector2f loc, MultiWidgets::Widget * parent)
 {
 	MultiWidgets::Widget::ChildIterator it = parent->childBegin();
 	MultiWidgets::Widget::ChildIterator end = parent->childEnd();
@@ -323,6 +313,12 @@ MultiWidgets::Widget * DistortWidget::findChildInside(Luminous::Transformer & tr
 	return 0;
 }
 
-
-
-
+// is point c left of line which goes through (a,b)
+// if determinant of
+// [ b.x-a.x c.x-a.x ]
+// [ b.y-a.y c.y-a.y ]
+// is > 0
+bool ReachingWidget::isLeftOfLine(Nimble::Vector2 a, Nimble::Vector2 b, Nimble::Vector2 c)
+{
+	return (b.x-a.x)*(c.y-a.y) - (c.x-a.x)*(b.y-a.y) > 0;
+}

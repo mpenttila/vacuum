@@ -1,27 +1,51 @@
-DistortWidget {
-  /* 0 = normal, 1 = inversely proportional */
-  pull-type: 0;
-  /* ~ pi/16 * 8 */
-  pull-angle: 1.0;
-  pull-intensity: 0.6;
-  background-alpha: 0.6;
-  idle-timeout: 1.0;
-  /*
-   arrows = 1
-   particles = 2
-   velocity field = 4
-   gravity = 8
-   5 = 1 | 4 = arrows | velocity field
-  */
-  feature-flags: 5;
-  /* amount of gravity (right, down) */
-  /* no effect if gravity is disabled */
-  gravity: vec2f(0.0, 100.0);
-  tube-width: 0.03;
-  decay-per-sec: 6000.0;
-  /* 0: maximum blur, 1: no blur */
-  blur-factor: 1;
+VacuumReachingWidget {
+	/* ~ pi/16 * 8 */
+	pull-angle: 1.0;
+	background-alpha: 0.6;
+	idle-timeout: 1.0;
+	/*
+	arrows = 1
+	particles = 2
+	velocity field = 4
+	gravity = 8
+	5 = 1 | 4 = arrows | velocity field
+	*/
+	feature-flags: 5;
+	/* amount of gravity (right, down) */
+	/* no effect if gravity is disabled */
+	gravity: vec2f(0.0, 100.0);
+	tube-width: 0.03;
+	pull-intensity: 0.6;
+	decay-per-sec: 6000.0;
+	/* 0: maximum blur, 1: no blur */
+	blur-factor: 1;
 }
+
+DistortWidget{
+	/* 0 = normal, 1 = inversely proportional */
+	pull-type: 0;
+	/* ~ pi/16 * 8 */
+	pull-angle: 1.0;
+	background-alpha: 0.6;
+	idle-timeout: 1.0;
+	/*
+	arrows = 1
+	particles = 2
+	velocity field = 4
+	gravity = 8
+	5 = 1 | 4 = arrows | velocity field
+	*/
+	feature-flags: 5;
+	/* amount of gravity (right, down) */
+	/* no effect if gravity is disabled */
+	gravity: vec2f(0.0, 100.0);
+	tube-width: 0.03;
+	pull-intensity: 4.0;
+	decay-per-sec: 2000.0;
+	/* 0: maximum blur, 1: no blur */
+	blur-factor: 0.95;
+}
+
 WidgetList {
 	/* 6 = move, 8 = rotation => 6+8 */
 	input-flags: 14;

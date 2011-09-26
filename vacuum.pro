@@ -3,12 +3,14 @@ CONFIG -= qt
 CONFIG -= app_bundle
 
 SOURCES += Main.cpp \
-    distortwidget.cpp \
+    DistortWidget.cpp \
     widgetlist.cpp \
     VacuumWidget.cpp \
     wordreader.cpp \
     RoundTextBox.cpp \
-    logger.cpp
+    logger.cpp \
+	ReachingWidget.cpp \
+	VacuumReachingWidget.cpp
 
 exists(/home/loop/multitouch/cornerstone) {
 	INCLUDEPATH += /home/loop/multitouch/cornerstone/ /home/loop/multitouch/cornerstone/multitude
@@ -19,7 +21,7 @@ LIBS += -lMultiWidgets -lRadiant -lLuminous -lPoetic -lValuable -lFluffy -lReson
 LIBS += -lSDLmain
 linux-* { LIBS += -lThreadedRendering }
 
-HEADERS += distortwidget.hpp widgetlist.hpp VacuumWidget.hpp wordreader.hpp RoundTextBox.hpp logger.hpp
+HEADERS += DistortWidget.hpp widgetlist.hpp VacuumWidget.hpp wordreader.hpp RoundTextBox.hpp logger.hpp ReachingWidget.hpp VacuumReachingWidget.hpp
 
 TARGET = vacuum
 
