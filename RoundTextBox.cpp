@@ -94,8 +94,8 @@ void RoundTextBox::cachedRender(Luminous::RenderContext & r)
 void RoundTextBox::renderContent(Luminous::RenderContext & r)
 {
 	// No mutex() in SDK 1.2
-	// Luminous::GLContext::Guard lock(r.glContext());
-	Luminous::GLContext::Guard lock(r.glContext()->mutex());
+	Luminous::GLContext::Guard lock(r.glContext());
+	//Luminous::GLContext::Guard lock(r.glContext()->mutex());
 
 	// Get the basic box from standard widgets.
 	glDisable(GL_TEXTURE_2D);

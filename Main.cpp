@@ -240,14 +240,14 @@ public:
 
 		// Name events this class will handle
 		// Needed in API 1.2
-		/*
+		
 		eventAddIn("clear-widget");
 		eventAddIn("start-button-pressed-0");
 		eventAddIn("start-button-pressed-1");
 		eventAddIn("word-acquired-0");
 		eventAddIn("word-acquired-1");
 		eventAddOut("clear-widget");
-		*/
+		
 
 		m_collectedWords.resize(players);
 		m_startButtons.resize(players);
@@ -285,7 +285,7 @@ public:
 			m_startButtons[i]->setLocation(sz.x/2 - startWidth - 50 + (100 + startWidth) * i, sz.y/2 - startWidth);
 			m_startButtons[i]->setInputFlags(MultiWidgets::Widget::INPUT_USE_TAPS);
 			m_startButtons[i]->setDepth(0);
-			m_startButtons[i]->setIsVisible(false);
+			m_startButtons[i]->setVisible(false);
 			
 			m_scoreWidgets[i] = new MultiWidgets::TextBox(this, 0, MultiWidgets::TextBox::HCENTER);
 			m_scoreWidgets[i]->setCSSType("ScoreWidget");
@@ -361,7 +361,7 @@ public:
 		}
 		for(int i = 0; i < m_players; ++i){
 			m_playerReadyToStart[i] = false;
-			m_startButtons[i]->setIsVisible(true);
+			m_startButtons[i]->setVisible(true);
 		}
 		m_playersPassed = 0;
 	}
@@ -379,7 +379,7 @@ public:
 				}
 			}
 			for (int i=0; i < m_players; ++i) {
-				m_startButtons[i]->setIsVisible(false);
+				m_startButtons[i]->setVisible(false);
 			}
 			gotoLevel(m_currentsentence, m_currentword);
 		}
