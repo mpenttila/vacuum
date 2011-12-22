@@ -10,7 +10,7 @@
 #include <Radiant/TimeStamp.hpp>
 #include <Nimble/Random.hpp>
 
-//#define USE_THREADED
+#define USE_THREADED
 
 #ifdef USE_THREADED
 #include <ThreadedRendering/SimpleThreadedApplication.hpp>
@@ -23,6 +23,8 @@ typedef MultiWidgets::SimpleSDLApplication GfxApp;
 
 #define VACUUM_MODE 0
 #define DISTORT_MODE 1
+#define START_RIGHT 0
+#define START_LEFT 1
 
 #include "ReachingWidget.hpp"
 #include "DistortWidget.hpp"
@@ -82,7 +84,8 @@ public:
 	static MyApplication * me;
 	
 	MyApplication() : Parent(),
-		reachingMode(VACUUM_MODE)
+		reachingMode(VACUUM_MODE),
+		startSide(START_RIGHT)
 	{
 		assert(!me);
 		me = this;
@@ -102,7 +105,7 @@ public:
 			(*it)();
 		}
 	}
-	virtual bool keyPressEvent (int ascii, int special, int modifiers) {
+	virtual bool keyPressEvent (int ascii, int special, int modifiers, bool foo) {
 		//Radiant::info("Keypress: %d (%c)", ascii, ascii);
 		if (ascii == 's') {
 			int width = size().x;
@@ -124,7 +127,7 @@ public:
 			return true;
 		}
 		else {
-			return GfxApp::keyPressEvent(ascii, special, modifiers);
+			return GfxApp::keyPressEvent(ascii, special, modifiers, foo);
 		}
 	}
 
@@ -137,6 +140,7 @@ public:
 	std::list<CallBack> m_postUpdate;
 
 	int reachingMode;
+	int startSide;
 };
 MyApplication * MyApplication::me = 0;
 
@@ -252,7 +256,7 @@ public:
 		m_collectedWords.resize(players);
 		m_startButtons.resize(players);
 		m_scoreWidgets.resize(players);
-		for(int i = 0; i < 2; i++){
+		for(int i = 0; i < players; i++){
 			m_playerReadyToStart[i] = false;
 			m_playerScore[i] = 0;
 		}
@@ -265,38 +269,79 @@ public:
 			Nimble::Vector2(sz.x - preW, sz.y - preH)
 		};
 
-		for (int i=0; i < players; ++i) {
-			m_collectedWords[i] = new CollectedWordsWidget(this);
-			m_collectedWords[i]->setWidth(preW);
-			m_collectedWords[i]->setHeight(preH);
-			//m_collectedWords[i]->setRotationAboutCenter(-Nimble::Math::PI/2 + i*Nimble::Math::PI);
-			m_collectedWords[i]->setLocation(previewLocs[i]);
-			m_collectedWords[i]->setInputTransparent(true);
-			
-			std::string buttonName = std::string("P") + Radiant::StringUtils::stringify(i+1) + std::string(" Start");
-			std::string buttonEvent = std::string("start-button-pressed-") + Radiant::StringUtils::stringify(i);
-			m_startButtons[i] = new RoundTextBox(this, buttonName.c_str(), MultiWidgets::TextBox::VCENTER | MultiWidgets::TextBox::HCENTER);
-			m_startButtons[i]->eventAddListener("interactionbegin", buttonEvent.c_str(), this);
-			m_startButtons[i]->setCSSType("StartButton");
-			m_startButtons[i]->setStyle(style());
-			/* Set width to 20 mm */
-			int startWidth = Nimble::Math::Round(sz.x / m_physicalWidth * 30);
-			m_startButtons[i]->setWidth(startWidth);
-			m_startButtons[i]->setLocation(sz.x/2 - startWidth - 50 + (100 + startWidth) * i, sz.y/2 - startWidth);
-			m_startButtons[i]->setInputFlags(MultiWidgets::Widget::INPUT_USE_TAPS);
-			m_startButtons[i]->setDepth(0);
-			m_startButtons[i]->setVisible(false);
-			
-			m_scoreWidgets[i] = new MultiWidgets::TextBox(this, 0, MultiWidgets::TextBox::HCENTER);
-			m_scoreWidgets[i]->setCSSType("ScoreWidget");
-			m_scoreWidgets[i]->setStyle(style());
-			m_scoreWidgets[i]->setText(std::string("0"));
-			int scoreWidth = m_scoreWidgets[i]->totalTextAdvance() * 2 + 50;
-			m_scoreWidgets[i]->setWidth(scoreWidth);
-			m_scoreWidgets[i]->setInputTransparent(true);
-			m_scoreWidgets[i]->setColor(0, 0, 0, 0);
-			m_scoreWidgets[i]->setLocation(sz.x/2 - scoreWidth -50 + (100 + scoreWidth) * i, 100);
-			
+		if(players >= 2){
+			for (int i=0; i < players; ++i) {
+				m_collectedWords[i] = new CollectedWordsWidget(this);
+				m_collectedWords[i]->setWidth(preW);
+				m_collectedWords[i]->setHeight(preH);
+				//m_collectedWords[i]->setRotationAboutCenter(-Nimble::Math::PI/2 + i*Nimble::Math::PI);
+				m_collectedWords[i]->setLocation(previewLocs[i]);
+				m_collectedWords[i]->setInputTransparent(true);
+				m_collectedWords[i]->addWord("Press start");
+				
+				std::string buttonName = std::string("P") + Radiant::StringUtils::stringify(i+1) + std::string(" Start");
+				std::string buttonEvent = std::string("start-button-pressed-") + Radiant::StringUtils::stringify(i);
+				m_startButtons[i] = new RoundTextBox(this, buttonName.c_str(), MultiWidgets::TextBox::VCENTER | MultiWidgets::TextBox::HCENTER);
+				m_startButtons[i]->eventAddListener("interactionbegin", buttonEvent.c_str(), this);
+				m_startButtons[i]->setCSSType("StartButton");
+				m_startButtons[i]->setStyle(style());
+				/* Set width to 20 mm */
+				int startWidth = Nimble::Math::Round(sz.x / m_physicalWidth * 30);
+				m_startButtons[i]->setWidth(startWidth);
+				m_startButtons[i]->setHeight(startWidth);
+				m_startButtons[i]->setLocation(sz.x/2 - startWidth - 50 + (100 + startWidth) * i, sz.y/2 - startWidth/2);
+				m_startButtons[i]->setInputFlags(MultiWidgets::Widget::INPUT_USE_TAPS);
+				m_startButtons[i]->setDepth(0);
+				m_startButtons[i]->setVisible(false);
+				
+				m_scoreWidgets[i] = new MultiWidgets::TextBox(this, 0, MultiWidgets::TextBox::HCENTER);
+				m_scoreWidgets[i]->setCSSType("ScoreWidget");
+				m_scoreWidgets[i]->setStyle(style());
+				m_scoreWidgets[i]->setText(std::string("0"));
+				int scoreWidth = m_scoreWidgets[i]->totalTextAdvance() * 2 + 50;
+				m_scoreWidgets[i]->setWidth(scoreWidth);
+				m_scoreWidgets[i]->setInputTransparent(true);
+				m_scoreWidgets[i]->setColor(0, 0, 0, 0);
+				m_scoreWidgets[i]->setLocation(sz.x/2 - scoreWidth -50 + (100 + scoreWidth) * i, 100);
+			}
+		}
+		else{
+				m_collectedWords[0] = new CollectedWordsWidget(this);
+				m_collectedWords[0]->setWidth(preW);
+				m_collectedWords[0]->setHeight(preH);
+				m_collectedWords[0]->setLocation(Nimble::Vector2(sz.x/2 - preW/2, sz.y - preH));
+				m_collectedWords[0]->setInputTransparent(true);
+				m_collectedWords[0]->addWord("Press start");
+				
+				std::string buttonName = std::string("Start");
+				std::string buttonEvent = std::string("start-button-pressed-0");
+				m_startButtons[0] = new RoundTextBox(this, buttonName.c_str(), MultiWidgets::TextBox::VCENTER | MultiWidgets::TextBox::HCENTER);
+				m_startButtons[0]->eventAddListener("interactionbegin", buttonEvent.c_str(), this);
+				m_startButtons[0]->setCSSType("StartButton");
+				m_startButtons[0]->setStyle(style());
+				/* Set width to 20 mm */
+				int startWidth = Nimble::Math::Round(sz.x / m_physicalWidth * 30);
+				m_startButtons[0]->setWidth(startWidth);
+				m_startButtons[0]->setHeight(startWidth);
+				if (MyApplication::me->startSide == START_RIGHT){
+					m_startButtons[0]->setLocation(sz.x - startWidth - 100, sz.y/2 - startWidth/2);
+				}
+				else{
+					m_startButtons[0]->setLocation(100, sz.y/2 - startWidth/2);
+				}
+				m_startButtons[0]->setInputFlags(MultiWidgets::Widget::INPUT_USE_TAPS);
+				m_startButtons[0]->setDepth(0);
+				m_startButtons[0]->setVisible(false);
+				
+				m_scoreWidgets[0] = new MultiWidgets::TextBox(this, 0, MultiWidgets::TextBox::HCENTER);
+				m_scoreWidgets[0]->setCSSType("ScoreWidget");
+				m_scoreWidgets[0]->setStyle(style());
+				m_scoreWidgets[0]->setText(std::string("0"));
+				int scoreWidth = m_scoreWidgets[0]->totalTextAdvance() * 2 + 50;
+				m_scoreWidgets[0]->setWidth(scoreWidth);
+				m_scoreWidgets[0]->setInputTransparent(true);
+				m_scoreWidgets[0]->setColor(0, 0, 0, 0);
+				m_scoreWidgets[0]->setLocation(sz.x/2 - scoreWidth/2, 100);			
 		}
 
 		setInputFlags(MultiWidgets::Widget::INPUT_PASS_TO_CHILDREN);
@@ -343,7 +388,13 @@ public:
 					}
 				}
 				MyApplication& app = *MyApplication::me;
-				std::string btnText = std::string("Player ") + Radiant::StringUtils::stringify(winningPlayer+1) + std::string(" wins!");
+				std::string btnText;
+				if(m_players == 1){
+					btnText = std::string("Thank you!");
+				}
+				else{
+					btnText = std::string("Player ") + Radiant::StringUtils::stringify(winningPlayer+1) + std::string(" wins!");
+				}
 				MultiWidgets::TextBox * winnerLabel = new MultiWidgets::TextBox(this, btnText.c_str(), MultiWidgets::TextBox::VCENTER | MultiWidgets::TextBox::HCENTER);
 				winnerLabel->setCSSType("WinnerLabel");
 				winnerLabel->setStyle(style());
@@ -354,9 +405,9 @@ public:
 				return;
 			}
 			// Clear collected words from "answerboards"
-			for(int i = 0; i < m_players; ++i){
+			/*for(int i = 0; i < m_players; ++i){
 				m_collectedWords[i]->clear();
-			}
+			}*/
 			m_currentword = 1;
 		}
 		for(int i = 0; i < m_players; ++i){
@@ -372,6 +423,10 @@ public:
 		
 		if (Radiant::StringUtils::beginsWith(s, "start-button-pressed")) {
 			int player = s[s.size()-1] - '0';
+			if(m_currentword == 1){
+				// Clear answer board
+				m_collectedWords[player]->clear();
+			}
 			m_playerReadyToStart[player] = true;
 			for(int i = 0; i < m_players; ++i){
 				if(!m_playerReadyToStart[i]){
@@ -447,7 +502,7 @@ public:
 			// Word width and distance is in millimeters, have to calculate pixel width and location
 			int pixelWidth = Nimble::Math::Round((double)app.size().maximum() / m_physicalWidth * word.width);
 			int x = Nimble::Math::Round((double)app.size().maximum() / m_physicalWidth * word.distance);
-			if(i == 0){
+			if(i == 0  && (m_players >= 2 || app.startSide == START_RIGHT)){
 				// To left side, calculate from start button left edge to word widget right edge
 				int edge = m_startButtons[i]->location().x;
 				x = edge - x - pixelWidth;
@@ -470,6 +525,7 @@ public:
 			tb->setHeight(pixelWidth);
 			tb->setAlignFlags(MultiWidgets::TextBox::HCENTER | MultiWidgets::TextBox::VCENTER);
 			tb->setLocation(Nimble::Vector2(x, app.size().minimum()/2 - pixelWidth/2));
+			//tb->setLocation(Nimble::Vector2(x, app.size().minimum()/2 - pixelWidth/2));
 			
 			//std::cout << "Widget calculated pixel width: " << pixelWidth << " location: x " << tb->location().x << " y " << tb->location().y << std::endl;
 			
@@ -555,6 +611,12 @@ int main(int argc, char ** argv)
 				app.reachingMode = DISTORT_MODE;
 			}
 		}
+		else if (r == "--start" && (i+1) < argc) {
+			if ((std::string("left")).compare(std::string(argv[++i])) == 0)
+			{
+				app.startSide = START_LEFT;
+			}
+		}
 	}
 
 	// Introduce generic distant reaching widget
@@ -586,11 +648,6 @@ int main(int argc, char ** argv)
 	wg->setDepth(-25);
 	wg->raiseFlag(WordGameWidget::LOCK_DEPTH);
 	wg->setAutoBringToTop(false);
-
-	std::vector<std::string> levels;
-	for (int i=1; i <= 12; ++i) {
-		levels.push_back(Radiant::StringUtils::stringify(i));
-	}
 
 	wg->initializeLevel();
 	wg->setStyle(app.style());
