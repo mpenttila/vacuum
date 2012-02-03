@@ -64,6 +64,8 @@ public:
 	Nimble::Vector2 mapInput(Nimble::Vector2 v);
 	MultiWidgets::Widget * findChildInside(Luminous::Transformer & tr, Nimble::Vector2f loc, MultiWidgets::Widget * parent);
 	
+	void resetVectorField();
+	
 	virtual void input(MultiWidgets::GrabManager & gm, float dt) = 0;
 	virtual void render(Luminous::RenderContext & r) = 0;
 	

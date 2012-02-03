@@ -153,6 +153,19 @@ void ReachingWidget::decayVectorField(Radiant::MemGrid32f (&field)[2], float dt)
 	}
 }
 
+void ReachingWidget::resetVectorField(){
+	float * tx = m_vectorFields[0].data();
+	float * ty = m_vectorFields[1].data();
+	for (int y=0; y < h; ++y) {
+		for (int x=0; x < w; ++x) {
+			*tx *= 0;
+			*ty *= 0;
+			tx++;
+			ty++;
+		}
+	}
+}
+
 void ReachingWidget::ensureGroundInitialized() {
 	static bool groundInit = false;
 	const float border = 1.0f;
