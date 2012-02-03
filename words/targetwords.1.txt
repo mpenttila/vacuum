@@ -1,0 +1,7 @@
+#sentencenumber;wordnumber;word;width(millimeter);distance(millimeter)
+1;1;Kissa;15;10.0
+1;2;istuu;25.4;120.4
+1;3;kukkalaatikossa;50.8;152.8
+1;4;pureskellen;50.8;203.2
+1;5;kynsiaan;50.8;406.4
+2;1;Etana;50.8;120
