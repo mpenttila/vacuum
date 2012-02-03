@@ -373,6 +373,8 @@ void VacuumReachingWidget::render(Luminous::RenderContext & r)
 	Luminous::GLResources::getThreadMultiHead(0, &area);
 	const Nimble::Vector2f gfxLoc = area->graphicsLocation();
 
+	//std::cout << "Graphics size: x: " << area->graphicsSize().x << " y: " << area->graphicsSize().y << std::endl;
+
 	GLRESOURCE_ENSURE(GLData, gld, this, r.resources());
 
 	Luminous::Texture2D* textures[2] = {&gld->m_tex[0].ref(), &gld->m_tex[1].ref()};
@@ -390,6 +392,11 @@ void VacuumReachingWidget::render(Luminous::RenderContext & r)
 	//renderChildren(r);
 
 	Nimble::Vector2i texSize(w, h);
+	//std::cout << "w: " << w << " h: " << h << std::endl;
+	//glViewport(0, 0, area->width()*2, area->height());
+
+	// Vary luminance based on force
+	/*
 	for (int i=0; i < 2; ++i) {
 		textures[i]->bind(GL_TEXTURE1 + i);
 		textures[i]->loadBytes(GL_LUMINANCE32F_ARB,
@@ -398,13 +405,17 @@ void VacuumReachingWidget::render(Luminous::RenderContext & r)
 		                       false);
 
 	}
-
+	*/
+	
 	glEnable(GL_TEXTURE_2D);
+	
 	textureRead.bind(GL_TEXTURE0);
+	
 	if (textureRead.size() != area->size()) {
 		textureRead.loadBytes(GL_RGBA, area->width(), area->height(), 0,
 		                      Luminous::PixelFormat::rgbaUByte(), false);
 	}
+	
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -416,7 +427,7 @@ void VacuumReachingWidget::render(Luminous::RenderContext & r)
 	gld->m_fbo->check();
 	glDrawBuffer(Luminous::COLOR0);
 	glPushAttrib(GL_VIEWPORT_BIT);
-	glViewport(0, 0, area->width(), area->height());
+	glViewport(0, 0, area->width()*2, area->height());
 
 
 	glClearColor(0, 0, 0, 0);
@@ -516,7 +527,7 @@ void VacuumReachingWidget::render(Luminous::RenderContext & r)
 	//    glActiveTexture(GL_TEXTURE0);
 	glDisable(GL_TEXTURE_2D);
 
-
+	/*
 	if (m_featureFlags & FEATURE_ARROWS) {
 		glBegin(GL_LINES);
 		// draw arrows for vector field
@@ -531,11 +542,13 @@ void VacuumReachingWidget::render(Luminous::RenderContext & r)
 				if (lSq < 0.5f) continue;
 				off.normalize(2.0f*Nimble::Math::Log2(lSq));
 
+				
 				glColor4f(0.0, 0.0, 1.0, 0.3);
 				glVertex2fv(id.data());
 				glColor4f(0.0, 0.0, 1.0, 0.9);
 				Nimble::Vector2 end = id+off;
 				glVertex2fv(end.data());
+								
 				// arrow head
 				Nimble::Vector2 right = off;
 				right.rotate(3*Nimble::Math::PI/4);
@@ -547,10 +560,40 @@ void VacuumReachingWidget::render(Luminous::RenderContext & r)
 				glVertex2fv(end.data());
 				glColor4f(0.0, 0.0, 1.0, 0.3);
 				glVertex2fv((end+right.perpendicular()).data());
+				
 			}
 		}
 		glEnd();
 	}
+	*/
+
+	//glBegin(GL_LINES);
+		// Draw circles for area effect
+		for (int y=0; y < h; ++y) {
+			for (int x=0; x < w; ++x) {
+				Nimble::Vector2 loc(m_vectorFields[0].get(x,y)*width(), m_vectorFields[1].get(x,y)*height());
+				Nimble::Vector2 id(float(x)/(w-1) * width(), float(y)/(h-1) * height());
+				loc = r.project(loc);
+				id = r.project(id);
+				Nimble::Vector2 off = loc;
+				float lSq = off.lengthSqr();
+				if (lSq < 0.5f) continue;
+				off.normalize(2.0f*Nimble::Math::Log2(lSq));
+				
+				glBegin(GL_TRIANGLE_FAN);
+				
+				glColor4f(1.0, 0.8, 0.8, 0.05);
+				glVertex2f(id.x, id.y);
+				//glColor4f(0.0, 0.0, 1.0, 0.9);
+				for(int ang = 0; ang < 360; ang += 10){
+					float rad = ang * 3.14159/180;
+					glVertex2f(id.x + sin(rad) * 30.0f, id.y + cos(rad) * 30.0f);
+				}
+				glEnd();
+			}
+		}
+	//glEnd();
+
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

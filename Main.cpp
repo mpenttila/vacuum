@@ -645,7 +645,7 @@ int main(int argc, char ** argv)
 	d->setStyle(app.style());
 	//d->resize(d->width(), d->height());
 	// every 32 pixels
-	const int density = 32;
+	const int density = 28;
 	d->resize(Nimble::Math::Round(d->width()/density), Nimble::Math::Round(d->height()/density));
 	d->setDepth(-30);
 	d->setInputTransparent(true);

@@ -28,23 +28,23 @@ const int rad = 5;
 
 void main(void) {
 	float tx = texture2D(fieldX, gl_TexCoord[0].st).x;
-  float ty = texture2D(fieldY, gl_TexCoord[0].st).x;
+	float ty = texture2D(fieldY, gl_TexCoord[0].st).x;
 	vec2 off = vec2(tx, ty);
 
 	vec2 onePix = 1.0/size;
 	vec2 o = onePix*12;
-  vec2 o2 = o*5*(1+0*dot(off,off));
+	vec2 o2 = o*5*(1+0*dot(off,off));
 	for (int i=0; i < 16; ++i) {
 		gl_FragColor += texture2D(background, gl_TexCoord[0].st + poisson[i]*o);
-    gl_FragColor += texture2D(background, gl_TexCoord[0].st + poisson[i]*o2);
+		gl_FragColor += texture2D(background, gl_TexCoord[0].st + poisson[i]*o2);
 	}
-  gl_FragColor /= 16*2;
+	gl_FragColor /= 16*2;
 #if 1
 	float l = length(gl_FragColor);
-  l -= length(off);
+	l -= length(off);
 	vec4 inte = vec4(0.6, 0.1, 0.1, 0.9);
-	vec4 exte = 0.1*vec4(0.12, 0.24, 0.17, 10.15);
-  gl_FragColor = mix(inte, exte, l);
+	vec4 exte = 0.1*vec4(0.12, 0.24, 0.88, 10.15);
+	gl_FragColor = mix(inte, exte, l);
 //  gl_FragColor *= clamp(1+length(off), 1.0, 1.5);
 #endif
 //gl_FragColor = texture2D(background, gl_TexCoord[0].st);
