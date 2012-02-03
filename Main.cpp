@@ -321,12 +321,12 @@ public:
 				m_startButtons[0]->eventAddListener("interactionbegin", buttonEvent.c_str(), this);
 				m_startButtons[0]->setCSSType("StartButton");
 				m_startButtons[0]->setStyle(style());
-				/* Set width to 20 mm */
+				/* Set width to 30 mm */
 				int startWidth = Nimble::Math::Round(sz.x / m_physicalWidth * 30);
 				m_startButtons[0]->setWidth(startWidth);
 				m_startButtons[0]->setHeight(startWidth);
 				if (MyApplication::me->startSide == START_RIGHT){
-					m_startButtons[0]->setLocation(sz.x - startWidth - 100, sz.y/2 - startWidth/2);
+					m_startButtons[0]->setLocation(sz.x - startWidth - 10, sz.y/2 - startWidth/2);
 				}
 				else{
 					m_startButtons[0]->setLocation(100, sz.y/2 - startWidth/2);
@@ -343,7 +343,7 @@ public:
 				m_scoreWidgets[0]->setWidth(scoreWidth);
 				m_scoreWidgets[0]->setInputTransparent(true);
 				m_scoreWidgets[0]->setColor(0, 0, 0, 0);
-				m_scoreWidgets[0]->setLocation(sz.x/2 - scoreWidth/2, 100);			
+				m_scoreWidgets[0]->setLocation(sz.x/2 + 200, 100);			
 		}
 
 		setInputFlags(MultiWidgets::Widget::INPUT_PASS_TO_CHILDREN);
