@@ -372,8 +372,9 @@ public:
 	}
 	
 	void initializeLevel(){
-		
+		MyApplication& app = *MyApplication::me;
 		m_currentWordWidgets.clear();
+		app.overlay()->resetVectorField();
 		++m_currentword;
 
 		if(m_currentword > wordReader.sentenceLength(m_currentsentence)){
@@ -389,7 +390,6 @@ public:
 						winningScore = m_playerScore[i];
 					}
 				}
-				MyApplication& app = *MyApplication::me;
 				std::string btnText;
 				if(m_players == 1){
 					btnText = std::string("Thank you!");
@@ -476,6 +476,8 @@ public:
 		// delete everything, create again
 
 		MyApplication& app = *MyApplication::me;
+		// Reset forces
+		app.overlay()->resetVectorField();
 
 		MultiWidgets::Widget::ChildIterator it;
 		for (it = app.root()->childBegin(); it != app.root()->childEnd(); ++it) {
