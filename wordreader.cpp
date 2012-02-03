@@ -12,12 +12,12 @@ using std::string;
 using std::vector;
 using std::ifstream;
 
-WordReader::WordReader(int playerCount) : _playerCount(playerCount) {
+WordReader::WordReader(int playerCount, std::string filename) : _playerCount(playerCount) {
 	sentences.resize(playerCount);
 	std::cout << "initializing wordreader" << std::endl;
 	for(int i = 1; i <= playerCount; i++){
 		std::stringstream ss;
-		ss << "targetwords." << i << ".txt";
+		ss << filename << "." << i << ".txt";
 		std::cout << "looking for file " << ss.str() << std::endl;
 		ifstream file(ss.str().c_str());
 		if(file.is_open()){

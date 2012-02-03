@@ -18,15 +18,16 @@ long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=4
-FILE_NAME_0=16455;C++;0;16;1;1;0;/home/wox/vacuum/Main.cpp;0
+current_page=0
+FILE_NAME_0=14464;C++;0;16;1;1;0;/home/wox/vacuum/Main.cpp;0
 FILE_NAME_1=758;None;0;16;1;1;0;/home/wox/vacuum/vacuum.pro;0
 FILE_NAME_2=1834;C++;0;16;1;1;0;/home/wox/vacuum/ReachingWidget.cpp;0
 FILE_NAME_3=322;C++;0;16;1;1;0;/home/wox/vacuum/DistortWidget.cpp;0
-FILE_NAME_4=330;C++;0;16;1;1;0;/home/wox/vacuum/VacuumReachingWidget.cpp;0
-FILE_NAME_5=1328;C++;0;16;1;1;0;/home/wox/vacuum/ReachingWidget.hpp;0
-FILE_NAME_6=629;C++;0;16;1;1;0;/home/wox/vacuum/VacuumReachingWidget.hpp;0
-FILE_NAME_7=383;C++;0;16;1;1;0;/home/wox/vacuum/DistortWidget.hpp;0
-FILE_NAME_8=0;CSS;0;16;1;1;0;/home/wox/vacuum/style.css;0
-FILE_NAME_9=719;C++;0;16;1;1;0;/home/wox/vacuum/logger.cpp;0
-FILE_NAME_10=493;C++;0;16;1;1;0;/home/wox/vacuum/logger.hpp;0
+FILE_NAME_4=1328;C++;0;16;1;1;0;/home/wox/vacuum/ReachingWidget.hpp;0
+FILE_NAME_5=383;C++;0;16;1;1;0;/home/wox/vacuum/DistortWidget.hpp;0
+FILE_NAME_6=2287;CSS;0;16;1;1;0;/home/wox/vacuum/style.css;0
+FILE_NAME_7=719;C++;0;16;1;1;0;/home/wox/vacuum/logger.cpp;0
+FILE_NAME_8=493;C++;0;16;1;1;0;/home/wox/vacuum/logger.hpp;0
+FILE_NAME_9=211;None;0;16;1;1;0;/home/wox/vacuum/targetwords.1.txt;0
+FILE_NAME_10=489;C++;0;16;1;1;0;/home/wox/vacuum/wordreader.cpp;0
+FILE_NAME_11=647;C++;0;16;1;1;0;/home/wox/vacuum/wordreader.hpp;0

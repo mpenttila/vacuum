@@ -202,10 +202,10 @@ public:
 		//tb->setRotation(-1 * Nimble::Math::HALF_PI);
 		tb->setHeight(50);
 		tb->setFaceSize(36);
-		tb->setWidth(tb->totalTextAdvance() + 30);
-		if((m_yloc + tb->totalTextAdvance() + 30) > width()){
+		tb->setWidth(tb->totalTextAdvance() + 10);
+		if((m_yloc + tb->totalTextAdvance() + 10) > width()){
 			m_yloc = 0;
-			m_xloc += 42;
+			m_xloc += 40;
 		}
 		tb->setLocation(m_yloc, m_xloc);
 		m_yloc += tb->width();
@@ -214,7 +214,7 @@ public:
 	void clear(){
 		deleteChildren();
 		m_yloc = 0;
-		m_xloc = 30;
+		m_xloc = 0;
 	}
 	
 	int m_yloc;
@@ -228,14 +228,14 @@ class WordGameWidget : public MultiWidgets::Widget {
 
 public:
 
-	WordGameWidget(int players, MultiWidgets::Widget * p=0, double physicalWidth = 0) :
+	WordGameWidget(int players, MultiWidgets::Widget * p=0, double physicalWidth = 0, std::string filename = "targetwords") :
 		Parent(p),
 		m_currentsentence(1),
 		m_currentword(0),
 		m_players(players),
 		m_playersPassed(0),
 		m_physicalWidth(physicalWidth),
-		wordReader(players),
+		wordReader(players, filename),
 		logger(MyApplication::me->reachingMode)
 	{
 		setName("WordGame");
@@ -298,7 +298,7 @@ public:
 				m_scoreWidgets[i]->setCSSType("ScoreWidget");
 				m_scoreWidgets[i]->setStyle(style());
 				m_scoreWidgets[i]->setText(std::string("0"));
-				int scoreWidth = m_scoreWidgets[i]->totalTextAdvance() * 2 + 50;
+				int scoreWidth = 200;
 				m_scoreWidgets[i]->setWidth(scoreWidth);
 				m_scoreWidgets[i]->setInputTransparent(true);
 				m_scoreWidgets[i]->setColor(0, 0, 0, 0);
@@ -306,6 +306,8 @@ public:
 			}
 		}
 		else{
+				preW = 1100;
+				preH = 200;
 				m_collectedWords[0] = new CollectedWordsWidget(this);
 				m_collectedWords[0]->setWidth(preW);
 				m_collectedWords[0]->setHeight(preH);
@@ -337,7 +339,7 @@ public:
 				m_scoreWidgets[0]->setCSSType("ScoreWidget");
 				m_scoreWidgets[0]->setStyle(style());
 				m_scoreWidgets[0]->setText(std::string("0"));
-				int scoreWidth = m_scoreWidgets[0]->totalTextAdvance() * 2 + 50;
+				int scoreWidth = 200;
 				m_scoreWidgets[0]->setWidth(scoreWidth);
 				m_scoreWidgets[0]->setInputTransparent(true);
 				m_scoreWidgets[0]->setColor(0, 0, 0, 0);
@@ -447,6 +449,7 @@ public:
 			if(m_playersPassed == 1){
 				++m_playerScore[player];
 				m_scoreWidgets[player]->setText(Radiant::StringUtils::stringify(m_playerScore[player]));
+				//m_scoreWidgets[player]->setText(Radiant::StringUtils::stringify(130));
 			}
 			Radiant::BinaryData data;
 			data.writeInt32(player);
@@ -587,6 +590,7 @@ int main(int argc, char ** argv)
 	int levelCount = 2;
 	// Default is the width of Multitouch Cell Advanced in millimeters
 	double displayWidth = 1018;
+	std::string filename = "targetwords";
 
 	// Scan command line arguments for directory name
 	for(int i = 0; i < argc; i++) {
@@ -617,6 +621,9 @@ int main(int argc, char ** argv)
 				app.startSide = START_LEFT;
 			}
 		}
+		else if (r == "--wordfile" && (i+1) < argc){
+			filename = std::string(argv[++i]);
+		}
 	}
 
 	// Introduce generic distant reaching widget
@@ -644,7 +651,7 @@ int main(int argc, char ** argv)
 	app.m_overlay = d;
 
 
-	WordGameWidget * wg = new WordGameWidget(players, app.root(), displayWidth);
+	WordGameWidget * wg = new WordGameWidget(players, app.root(), displayWidth, filename);
 	wg->setDepth(-25);
 	wg->raiseFlag(WordGameWidget::LOCK_DEPTH);
 	wg->setAutoBringToTop(false);

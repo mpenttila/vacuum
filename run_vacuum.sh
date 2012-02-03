@@ -1,4 +1,4 @@
 #!/bin/sh
 
-./vacuum --css style.css --displaywidth 518.5 --players 2
+./vacuum --css style.css --displaywidth 518.5 --players 1 --wordfile rapunzel2
 

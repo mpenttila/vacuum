@@ -35,7 +35,7 @@ class WordReader {
 		int _playerCount;
 		
 	public:
-		WordReader(int playerCount);
+		WordReader(int playerCount, std::string filename);
 		~WordReader();
 		
 		// Returns null if no such word
