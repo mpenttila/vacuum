@@ -511,8 +511,8 @@ void VacuumReachingWidget::render(Luminous::RenderContext & r)
 	Luminous::Utils::glUsualBlend();
 	//r.drawTexRect(area->graphicsBounds(), Nimble::Vector4(1, 1, 1, 1).data());
 
-
-	Luminous::Utils::glTexRect(area->graphicsSize(), r.transform() * Nimble::Matrix3::translate2D(gfxLoc.x, gfxLoc.y));
+	Luminous::Utils::glTexRect(size(), r.transform());
+	//Luminous::Utils::glTexRect(area->graphicsSize(), r.transform() * Nimble::Matrix3::translate2D(gfxLoc.x, gfxLoc.y));
 
 	gld->m_shader->unbind();
 
