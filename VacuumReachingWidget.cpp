@@ -78,8 +78,8 @@ void VacuumReachingWidget::applyForceToBodies(float dt) {
 
 		static const float timestep = 999.0f; //0.005f;
 		static const Vector2 points[] = {
-			//Vector2(0.5, 0.5)
-			Vector2(0, 0), Vector2(0, 1), Vector2(0.5, 0.5), Vector2(1,0), Vector2(1, 1)
+                        Vector2(0.5, 0.5)
+                        //Vector2(0, 0), Vector2(0, 1), Vector2(0.5, 0.5), Vector2(1,0), Vector2(1, 1)
 		};
 		static const int PointCount = sizeof(points)/sizeof(points[0]);
 
@@ -341,8 +341,10 @@ void VacuumReachingWidget::input(MultiWidgets::GrabManager & gm, float /*dt*/)
 
 				// Vacuum uses constant velocity (normalized)
 
-				float moveX = (nDir.x * 100)/width() * m_input_pull_intensity;
-				float moveY = (nDir.y * 100)/height() * m_input_pull_intensity;
+                                //float moveX = (nDir.x * 100)/width() * m_input_pull_intensity;
+                                //float moveY = (nDir.y * 100)/height() * m_input_pull_intensity;
+                                float moveX = nDir.x * m_input_pull_intensity;
+                                float moveY = nDir.y * m_input_pull_intensity;
 
 				//*p1 = Math::Clamp(*p1 + Math::Min(moveX, 0.2f), -1.0f, 1.0f);
 				//*p2 = Math::Clamp(*p2 + Math::Min(moveY, 0.2f), -1.0f, 1.0f);
