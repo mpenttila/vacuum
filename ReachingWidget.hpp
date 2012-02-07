@@ -105,18 +105,18 @@ struct ReachingWidget::GLData : public Luminous::GLResource {
 		Luminous::GLResource(res),
 		m_shader(0),
 		m_vbo(0),
-		m_fbo(0),
-		m_particleShader(0)
+		m_fbo(0)
+		//m_particleShader(0)
 	{
 		m_shader = Luminous::GLSLProgramObject::fromFiles(0, "distort.frag");
-		m_particleShader = Luminous::GLSLProgramObject::fromFiles("particles.vert", "particles.frag");
+		//m_particleShader = Luminous::GLSLProgramObject::fromFiles("particles.vert", "particles.frag");
 		m_fbo = new Luminous::Framebuffer();
 		m_vbo = new Luminous::VertexBuffer();
 	}
 	virtual ~GLData()
 	{
 		delete m_shader;
-		delete m_particleShader;
+		//delete m_particleShader;
 		delete m_fbo;
 	}
 

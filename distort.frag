@@ -1,3 +1,5 @@
+#version 120
+
 uniform sampler2D background;
 uniform sampler2D fieldX;
 uniform sampler2D fieldY;

@@ -2,3 +2,6 @@
 vacuum
 run.sh
 Makefile
+run_vacuum.sh
+run_distort.sh
+backup

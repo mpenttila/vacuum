@@ -10,36 +10,6 @@
 #define INPUT_PULL_NORMAL 0
 #define INPUT_PULL_INVERSELY_PROPORTIONAL 1
 
-/*
-struct ReachingWidget::GLData : public Luminous::GLResource {
-	GLData(Luminous::GLResources* res) :
-		Luminous::GLResource(res),
-		m_shader(0),
-		m_vbo(0),
-		m_fbo(0),
-		m_particleShader(0)
-	{
-		m_shader = Luminous::GLSLProgramObject::fromFiles(0, "distort.frag");
-		m_particleShader = Luminous::GLSLProgramObject::fromFiles("particles.vert", "particles.frag");
-		m_fbo = new Luminous::Framebuffer();
-		m_vbo = new Luminous::VertexBuffer();
-	}
-	virtual ~GLData()
-	{
-		delete m_shader;
-		delete m_particleShader;
-		delete m_fbo;
-	}
-
-	Luminous::GLSLProgramObject* m_shader;
-	Luminous::VertexBuffer * m_vbo;
-	Luminous::Framebuffer * m_fbo;
-	Luminous::GLSLProgramObject * m_particleShader;
-	// x, y & read buffer
-	Luminous::ContextVariableT<Luminous::Texture2D> m_tex[3];
-	Luminous::ContextVariableT<Luminous::Texture2D> m_particleTexture;
-};
-*/
 
 ReachingWidget::ReachingWidget(MultiWidgets::Widget * parent) :
 	MultiWidgets::Widget(parent),

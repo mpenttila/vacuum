@@ -437,7 +437,7 @@ void VacuumReachingWidget::render(Luminous::RenderContext & r)
 
 	Nimble::Matrix3 m = Nimble::Matrix3::scale2D(1, -1) * Nimble::Matrix3::translate2D(0, -area->graphicsSize().y);
 	// render
-	if (m_featureFlags & FEATURE_PARTICLES && !m_particles.empty()) {
+/*	if (m_featureFlags & FEATURE_PARTICLES && !m_particles.empty()) {
 		r.pushTransformRightMul(m * Nimble::Matrix3::scale2D(width(), height()));
 		gld->m_vbo->allocate(m_particles.size()*2*sizeof(Particle), Luminous::VertexBuffer::STREAM_DRAW);
 		Particle * v = (Particle*)gld->m_vbo->map(Luminous::VertexBuffer::WRITE_ONLY);
@@ -489,7 +489,7 @@ void VacuumReachingWidget::render(Luminous::RenderContext & r)
 
 		r.popTransform();
 	}
-
+*/
 	glPopAttrib();
 	gld->m_fbo->unbind();
 	glDrawBuffer(GL_BACK);
