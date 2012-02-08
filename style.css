@@ -16,7 +16,7 @@ VacuumReachingWidget {
 	gravity: vec2f(0.0, 100.0);
 	tube-width: 0.03;
         pull-intensity: 1;
-	decay-per-sec: 6000.0;
+        decay-per-sec: 6000.0;
 	/* 0: maximum blur, 1: no blur */
 	blur-factor: 1;
 }

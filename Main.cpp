@@ -9,6 +9,7 @@
 #include <Radiant/FileUtils.hpp>
 #include <Radiant/TimeStamp.hpp>
 #include <Nimble/Random.hpp>
+#include <Nimble/Math.hpp>
 
 #define USE_THREADED
 
@@ -74,6 +75,12 @@ void callWidgetTree(MultiWidgets::Widget * parent, T fn)
 		callWidgetTree(*it++, fn);
 	}
 }
+
+struct Distractor {
+    int width;
+    int x;
+    int y;
+};
 
 class MyApplication : public GfxApp
 {
@@ -155,19 +162,19 @@ void backgroundify(MultiWidgets::Widget * w)
 		if (idle > IDLE_TIMEOUT && !w->inputTransparent()) {
 			w->setColor(1, 1, 1, 1);
 			// Only do this when in vacuum mode
-			if(MyApplication::me->reachingMode == VACUUM_MODE)
-			{
-				w->recursiveSetAlpha(0.0f);
+//			if(MyApplication::me->reachingMode == VACUUM_MODE)
+//			{
+//				w->recursiveSetAlpha(0.0f);
+//				MyApplication::me->overlay()->addChild(w);
+//				RoundTextBox * tb = dynamic_cast<RoundTextBox*>(w);
+//				RoundTextBox * clone = tb->clone();
+//                clone->setType("clone");
+//				clone->setInputTransparent(true);
+//				d->addMovingAndStaticWidgetPair(clone, w);
+//			}
+//			else{
 				MyApplication::me->overlay()->addChild(w);
-				RoundTextBox * tb = dynamic_cast<RoundTextBox*>(w);
-				RoundTextBox * clone = tb->clone();
-				clone->setType("clone");
-				clone->setInputTransparent(true);
-				d->addMovingAndStaticWidgetPair(clone, w);
-			}
-			else{
-				MyApplication::me->overlay()->addChild(w);
-			}
+//			}
 		} else {
 			float t = 0.0f;
 			if (idle > IDLE_OK)
@@ -178,10 +185,12 @@ void backgroundify(MultiWidgets::Widget * w)
 	}
 }
 
+
 void bg()
 {
 	callWidgetTree(MyApplication::me->root(), backgroundify);
 }
+
 
 class CollectedWordsWidget : public MultiWidgets::Widget{
 	
@@ -460,6 +469,13 @@ public:
 			int player = bd.readInt32();
 			m_collectedWords[player]->addWord((wordReader.getWord(player, m_currentsentence, m_currentword)).word);
 			m_currentWordWidgets[player]->raiseFlag(RoundTextBox::DELETE_ME);
+            // Delete possible other widgets from the overlay
+            MultiWidgets::Widget::ChildIterator it;
+            MyApplication& app = *MyApplication::me;
+            for (it = app.overlay()->childBegin(); it != app.overlay()->childEnd(); ++it) {
+                if (dynamic_cast<RoundTextBox*>(*it))
+                    (*it)->raiseFlag(RoundTextBox::DELETE_ME);
+            }
 			if(m_playersPassed == m_players){
 				// Level clear, go to next
 				initializeLevel();
@@ -469,6 +485,53 @@ public:
 			Parent::processMessage(msg, bd);
 		}
 	}
+
+    std::vector<Distractor> generateDistractorLayout(float R, double A, double W){
+        double MAX_A = 1500;
+        double MIN_A = 50;
+        std::vector<Distractor> vec;
+
+        std::cout << "R: " << R << " A: " << A << " W: " << W << std::endl;
+
+        using namespace Nimble::Math;
+        double SHRINK_T = Sin(PI/3) * PI/4;
+        double r_t = Sqrt(R/SHRINK_T);
+        double r_r = R/r_t;
+        double alpha = ASin((double)W/A/2);
+        double k = Sqrt(PI/(r_r/Tan(alpha) + alpha - PI/2) + 1);
+        int i_max = int( floor( log(MAX_A/A) / log(k) ));
+        int i_min = int( ceil ( log(MIN_A/A) / log(k) ));
+
+        std::cout << "k: " << k << " i_max: " << i_max << " i_min: " << i_min << std::endl;
+
+        double id = Log2((A/W)+1);
+
+        int n = int(ceil(r_t*PI/alpha/4));
+        for(int i = i_min; i <= i_max; i++){
+            double ki0 = Pow(k, i);
+            double ki1 = Pow(k, i+0.5);
+            double a0 = ki0 * A;
+            double w0 = ki0 * W;
+            double a1 = ki1 * A;
+            double w1 = ki1 * W;
+
+            std::cout << ki0 << " " << ki1 << " " << a0 << " " << a1 << " " << w0 << " " << w1 << std::endl;
+
+            for(int j = -n; j <= n; j++){
+                double angle = 2 * alpha / r_t * j;
+                if(j % 2 == 0){
+                    //Distractor dw = {w0/2, a0 * Cos(angle), a0 * Sin(angle)};
+                    Distractor dw = {a0/(Pow(2,id)-1), a0 * Cos(angle), a0 * Sin(angle)};
+                    vec.push_back(dw);
+                }
+                else{
+                    Distractor dw = {w1/2, a1 * Cos(angle), a1 * Sin(angle)};
+                    vec.push_back(dw);
+                }
+            }
+        }
+        return vec;
+    }
 
 	void gotoLevel(unsigned int sentenceid, unsigned int wordid) {
 		Nimble::RandomUniform rnd(55);
@@ -500,13 +563,14 @@ public:
 			
 			TargetWord word = wordReader.getWord(i, sentenceid, wordid);
 
-			RoundTextBox * tb = new RoundTextBox(app.root(), 0, MultiWidgets::TextBox::HCENTER);
+            RoundTextBox * tb = new RoundTextBox(app.overlay(), 0, MultiWidgets::TextBox::HCENTER);
 			tb->setCSSClass("FloatingWord");
 			tb->setStyle(app.style());
 			tb->setText(word.word);
 			// Word width and distance is in millimeters, have to calculate pixel width and location
 			int pixelWidth = Nimble::Math::Round((double)app.size().maximum() / m_physicalWidth * word.width);
 			int x = Nimble::Math::Round((double)app.size().maximum() / m_physicalWidth * word.distance);
+            int pixelDistance = x;
 			if(i == 0  && (m_players >= 2 || app.startSide == START_RIGHT)){
 				// To left side, calculate from start button left edge to word widget right edge
 				int edge = m_startButtons[i]->location().x;
@@ -543,9 +607,33 @@ public:
 				tb->setFaceSize(faceSize);
 				if(faceSize == 6) break;
 			}
+            tb->setType("RoundTextBox");
+            tb->setPlayer(i);
 			
 			// Add widget to vector to find it later
 			m_currentWordWidgets.push_back(tb);
+
+            if(m_players == 1){
+                // Generate distractors
+                std::vector<Distractor> distractors = generateDistractorLayout(0.5, pixelDistance, pixelWidth);
+                std::vector<Distractor>::iterator it;
+                for(it = distractors.begin(); it < distractors.end(); it++){
+                    std::cout << "Distractor w: " << (*it).width << " x: " << (*it).x << " y: " << (*it).y << std::endl;
+                    RoundTextBox * dist = new RoundTextBox(app.overlay(), 0, MultiWidgets::TextBox::HCENTER);
+                    dist->setCSSClass("FloatingWord");
+                    dist->setStyle(app.style());
+                    dist->setWidth((*it).width);
+                    dist->setHeight((*it).width);
+//                    int distx = Nimble::Math::Clamp(m_startButtons[i]->location().x - (*it).x, 0.0f, app.size().x);
+//                    int disty = Nimble::Math::Clamp(m_startButtons[i]->location().y - (*it).y, 0.0f, app.size().y);
+                    int distx = m_startButtons[i]->location().x - (*it).x;
+                    int disty = m_startButtons[i]->location().y - (*it).y;
+                    dist->setLocation(distx, disty);
+                    dist->setAlignFlags(MultiWidgets::TextBox::HCENTER | MultiWidgets::TextBox::VCENTER);
+                    dist->setType("RoundTextBox");
+                    dist->setPlayer(0);
+                }
+            }
 		}
 		
 		logger.startRound();
@@ -580,7 +668,9 @@ int main(int argc, char ** argv)
 	SDL_Init(SDL_INIT_VIDEO);
 #endif
 	MyApplication app;
-	app.m_postUpdate.push_back(bg);
+    if(app.reachingMode == DISTORT_MODE){
+        app.m_postUpdate.push_back(bg);
+    }
 
 	if(!app.simpleInit(argc, argv))
 		return 1;
@@ -647,19 +737,22 @@ int main(int argc, char ** argv)
 	// every 32 pixels
 	const int density = 28;
 	d->resize(Nimble::Math::Round(d->width()/density), Nimble::Math::Round(d->height()/density));
-	d->setDepth(-30);
+    d->setDepth(-30);
 	d->setInputTransparent(true);
 	//MultiWidgets::Widget * root = d;
 	app.m_overlay = d;
 
 
 	WordGameWidget * wg = new WordGameWidget(players, app.root(), displayWidth, filename);
-	wg->setDepth(-25);
+    wg->setDepth(-25);
 	wg->raiseFlag(WordGameWidget::LOCK_DEPTH);
 	wg->setAutoBringToTop(false);
-
 	wg->initializeLevel();
 	wg->setStyle(app.style());
+    wg->setInputTransparent(true);
+    wg->setSize(0,0);
+
+    d->wordGameWidget = wg;
 
 	return app.run();
 }

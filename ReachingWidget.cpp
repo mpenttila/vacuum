@@ -107,21 +107,6 @@ void ReachingWidget::updateParticles(float dt) {
 	}
 }
 
-void ReachingWidget::decayVectorField(Radiant::MemGrid32f (&field)[2], float dt) {
-	float xmove = (m_decayPerSec * dt)/width();
-	float ymove = (m_decayPerSec * dt)/height();
-	float move = Nimble::Math::Max(xmove, ymove);
-	float * tx = field[0].data();
-	float * ty = field[1].data();
-	for (int y=0; y < h; ++y) {
-		for (int x=0; x < w; ++x) {
-			*tx *= (1 - move);
-			*ty *= (1 - move);
-			tx++;
-			ty++;
-		}
-	}
-}
 
 void ReachingWidget::resetVectorField(){
 	for (int y=0; y < h; ++y) {
@@ -165,41 +150,6 @@ void ReachingWidget::updateBodiesToWidgets() {
 			w->setRotation(angle);
 		}
 	}
-}
-
-void ReachingWidget::update(float dt)
-{
-	MultiWidgets::Widget::update(dt);
-	if (m_featureFlags & FEATURE_VELOCITY_FIELD)
-		decayVectorField(m_vectorFields, dt);
-
-	if (m_featureFlags & FEATURE_PARTICLES) {
-		updateParticles(dt);
-	}
-
-	if (m_featureFlags & FEATURE_VELOCITY_FIELD) {
-		const float timestep = 0.02f;
-		m_blurAcc += dt;
-		while (m_blurAcc > timestep) {
-			blur(m_blurFactor);
-			m_blurAcc -= timestep;
-		}
-	}
-
-	ensureWidgetsHaveBodies();
-	ensureGroundInitialized();
-
-	applyForceToBodies(dt);
-
-	if (m_featureFlags & FEATURE_GRAVITY)
-		m_world.SetGravity(b2Vec2(m_gravity.x(), m_gravity.y()));
-
-	for (int i=0; i < 1; ++i) {
-		m_world.Step(dt/1, 10, 10);
-	}
-	m_world.ClearForces();
-
-	updateBodiesToWidgets();
 }
 
 Nimble::Vector2 ReachingWidget::vectorValue(Nimble::Vector2 v)

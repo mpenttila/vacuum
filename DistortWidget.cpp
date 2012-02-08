@@ -87,6 +87,57 @@ void DistortWidget::applyForceToBodies(float dt) {
 	}
 }
 
+void DistortWidget::decayVectorField(Radiant::MemGrid32f (&field)[2], float dt) {
+    float xmove = (m_decayPerSec * dt)/width();
+    float ymove = (m_decayPerSec * dt)/height();
+    float move = Nimble::Math::Max(xmove, ymove);
+    float * tx = field[0].data();
+    float * ty = field[1].data();
+    for (int y=0; y < h; ++y) {
+        for (int x=0; x < w; ++x) {
+            *tx *= (1 - move);
+            *ty *= (1 - move);
+            tx++;
+            ty++;
+        }
+    }
+}
+
+void DistortWidget::update(float dt)
+{
+    MultiWidgets::Widget::update(dt);
+    if (m_featureFlags & FEATURE_VELOCITY_FIELD)
+        decayVectorField(m_vectorFields, dt);
+
+    if (m_featureFlags & FEATURE_PARTICLES) {
+        updateParticles(dt);
+    }
+
+    if (m_featureFlags & FEATURE_VELOCITY_FIELD) {
+        const float timestep = 0.02f;
+        m_blurAcc += dt;
+        while (m_blurAcc > timestep) {
+            blur(m_blurFactor);
+            m_blurAcc -= timestep;
+        }
+    }
+
+    ensureWidgetsHaveBodies();
+    ensureGroundInitialized();
+
+    applyForceToBodies(dt);
+
+    if (m_featureFlags & FEATURE_GRAVITY)
+        m_world.SetGravity(b2Vec2(m_gravity.x(), m_gravity.y()));
+
+    for (int i=0; i < 1; ++i) {
+        m_world.Step(dt/1, 10, 10);
+    }
+    m_world.ClearForces();
+
+    updateBodiesToWidgets();
+}
+
 void DistortWidget::input(MultiWidgets::GrabManager & gm, float /* dt */)
 {
 	gm.pushTransformRightMul(transform());
@@ -229,12 +280,6 @@ void DistortWidget::render(Luminous::RenderContext & r)
 
 	Luminous::Texture2D* textures[2] = {&gld->m_tex[0].ref(), &gld->m_tex[1].ref()};
 	Luminous::Texture2D & textureRead = gld->m_tex[2].ref();
-	Luminous::Texture2D & particleTex = gld->m_particleTexture.ref();
-
-	if (particleTex.generation() < 0) {
-		particleTex.loadImage("particle.png");
-		particleTex.setGeneration(1);
-	}
 
 	r.pushTransformRightMul(transform());
 	glDisable(GL_TEXTURE_2D);

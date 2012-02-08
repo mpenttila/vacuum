@@ -1,6 +1,8 @@
 #ifndef ROUNDTEXTBOX_HPP
 #define ROUNDTEXTBOX_HPP
 
+#include <MultiWidgets/TextBox.hpp>
+
 class RoundTextBox : public virtual MultiWidgets::TextBox
 {
 	public:
@@ -11,18 +13,23 @@ class RoundTextBox : public virtual MultiWidgets::TextBox
 
 		//virtual void render(Luminous::RenderContext & r);
 
-		virtual void cachedRender(Luminous::RenderContext & r);
+        //virtual void cachedRender(Luminous::RenderContext & r);
 		void renderContent(Luminous::RenderContext & r);
 		virtual bool isInside(Nimble::Vector2 v) const;
 		
 		inline void setType(std::string type)
 		{ m_type = type; }
 	
-		virtual const char * type() const;
+        virtual const char * type() const;
+
+        inline void setPlayer(int i)
+        { m_playernumber = i; }
+
+        int player() const;
 
 	private:
-		std::string m_type;
-
+        std::string m_type;
+        int m_playernumber;
 };
 
 #endif

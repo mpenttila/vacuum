@@ -47,7 +47,7 @@ RoundTextBox * RoundTextBox::clone(){
 	tb2->setFaceSize(faceSize());
 	return tb2;	
 }
-
+/*
 void RoundTextBox::cachedRender(Luminous::RenderContext & r)
 {
 	std::cout << "RoundTextBox::cachedRender called" << std::endl;
@@ -129,6 +129,16 @@ void RoundTextBox::renderContent(Luminous::RenderContext & r)
 		renderText(r);
 	}
  }
+*/
+
+void RoundTextBox::renderContent(Luminous::RenderContext & r)
+{
+  Radiant::Color old = color();
+  r.drawCircle(0.5f*size(), width()*0.5f, color().data());
+  setColor(1, 1, 1, 0);
+  TextBox::renderContent(r);
+  setColor(old);
+}
 
 bool RoundTextBox::isInside(Nimble::Vector2 v) const
 {
@@ -153,5 +163,10 @@ bool RoundTextBox::isInside(Nimble::Vector2 v) const
 const char * RoundTextBox::type() const
 {
 	return m_type.c_str();
+}
+
+int RoundTextBox::player() const
+{
+    return m_playernumber;
 }
 

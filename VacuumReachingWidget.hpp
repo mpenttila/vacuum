@@ -20,15 +20,20 @@ public:
 	void input(MultiWidgets::GrabManager & gm, float dt);
 	void render(Luminous::RenderContext & r);
 	void addMovingAndStaticWidgetPair(MultiWidgets::Widget* staticWidget, MultiWidgets::Widget* movingWidget);
+    void update(float dt);
+    void decayVectorField(Radiant::MemGrid32f (&field)[2], float dt);
+    virtual void processMessage(const char* msg, Radiant::BinaryData& bd);
 	
 private:
 
 	void addVacuumWidget(long fingerId, Nimble::Vector2 center);
 	void deleteVacuumWidget(long fingerId);
 	void modifyVacuumWidget(long fingerId, double rotation, float intensity);
+    void applyVacuum();
 	std::map<long, VacuumWidget*> m_vacuumWidgets;
 	std::map<void*, MultiWidgets::Widget *> m_static_to_moving;
 	std::map<void*, MultiWidgets::Widget *> m_moving_to_static;
+    std::map<void*, MultiWidgets::Widget *> m_vacuumClones;
 
 };
 

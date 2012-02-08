@@ -51,10 +51,10 @@ public:
 	virtual void deleteChild(Widget *w);
 	void setFeatureFlags(uint32_t flags);
 	void resize(int width, int height);
-	void update(float dt);
+    //virtual void update(float dt);
 	void updateParticles(float dt);
-	void decayVectorField(Radiant::MemGrid32f (&field)[2], float dt);
-	virtual void ensureWidgetsHaveBodies() = 0;
+    virtual void decayVectorField(Radiant::MemGrid32f (&field)[2], float dt) = 0;
+    virtual void ensureWidgetsHaveBodies() = 0;
 	void ensureGroundInitialized();
 	virtual void applyForceToBodies(float dt) = 0;
 	void updateBodiesToWidgets();
@@ -92,12 +92,14 @@ public:
 	Valuable::ValueVector2f m_gravity;
 	Valuable::ValueFloat m_tubeWidth;
 	Valuable::ValueFloat m_decayPerSec;
-	Valuable::ValueFloat m_blurFactor;;
+    Valuable::ValueFloat m_blurFactor;
 
 	float m_particleAcc;
 	float m_blurAcc;
 
 	b2Body * groundBody;
+
+    MultiWidgets::Widget * wordGameWidget;
 };
 
 struct ReachingWidget::GLData : public Luminous::GLResource {

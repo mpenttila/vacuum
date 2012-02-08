@@ -19,6 +19,8 @@ public:
   void input(MultiWidgets::GrabManager & gm, float dt);
   void render(Luminous::RenderContext & r);
   void addMovingAndStaticWidgetPair(MultiWidgets::Widget* staticWidget, MultiWidgets::Widget* movingWidget);
+  void update(float dt);
+  void decayVectorField(Radiant::MemGrid32f (&field)[2], float dt);
 
 };
 
