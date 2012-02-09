@@ -5,6 +5,7 @@
 #include <Radiant/Grid.hpp>
 #include <Luminous/Utils.hpp>
 #include <Box2D/Box2D.h>
+#include <Radiant/Mutex.hpp>
 #include <map>
 
 #include "ReachingWidget.hpp"
@@ -23,6 +24,7 @@ public:
     void update(float dt);
     void decayVectorField(Radiant::MemGrid32f (&field)[2], float dt);
     virtual void processMessage(const char* msg, Radiant::BinaryData& bd);
+    void resetAndClear();
 	
 private:
 
@@ -34,6 +36,8 @@ private:
 	std::map<void*, MultiWidgets::Widget *> m_static_to_moving;
 	std::map<void*, MultiWidgets::Widget *> m_moving_to_static;
     std::map<MultiWidgets::Widget *, MultiWidgets::Widget *> m_vacuumClones;
+
+    Radiant::Mutex cloneMapMutex;
 
 };
 

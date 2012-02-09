@@ -498,3 +498,10 @@ void DistortWidget::addMovingAndStaticWidgetPair(MultiWidgets::Widget*, MultiWid
 	// Do nothing
 }
 
+void DistortWidget::resetAndClear(){
+    resetVectorField();
+    MultiWidgets::Widget::ChildIterator it;
+    for (it = childBegin(); it != childEnd(); ++it) {
+        (*it)->raiseFlag(Widget::DELETE_ME);
+    }
+}

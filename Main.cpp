@@ -383,7 +383,8 @@ public:
 	void initializeLevel(){
 		MyApplication& app = *MyApplication::me;
 		m_currentWordWidgets.clear();
-		app.overlay()->resetVectorField();
+        //app.overlay()->resetVectorField();
+        app.overlay()->resetAndClear();
 		++m_currentword;
 
 		if(m_currentword > wordReader.sentenceLength(m_currentsentence)){
@@ -453,7 +454,7 @@ public:
 			int player = s[s.size()-1] - '0';
 			TargetWord currentWord = wordReader.getWord(player, m_currentsentence, m_currentword);
 			logger.logAcquire(player, m_currentsentence, m_currentword, currentWord.word, currentWord.width, currentWord.distance);
-			//std::cout << "word acquired by player " << player << std::endl;
+            //std::cout << "word acquired by player " << player << std::endl;
 			++m_playersPassed;
 			if(m_playersPassed == 1){
 				++m_playerScore[player];
@@ -468,14 +469,12 @@ public:
 			logger.endRound();
 			int player = bd.readInt32();
 			m_collectedWords[player]->addWord((wordReader.getWord(player, m_currentsentence, m_currentword)).word);
-			m_currentWordWidgets[player]->raiseFlag(RoundTextBox::DELETE_ME);
+            //m_currentWordWidgets[player]->raiseFlag(RoundTextBox::DELETE_ME);
             // Delete possible other widgets from the overlay
-            MultiWidgets::Widget::ChildIterator it;
+
             MyApplication& app = *MyApplication::me;
-            for (it = app.overlay()->childBegin(); it != app.overlay()->childEnd(); ++it) {
-                if (dynamic_cast<RoundTextBox*>(*it))
-                    (*it)->raiseFlag(RoundTextBox::DELETE_ME);
-            }
+            app.overlay()->resetAndClear();
+
 			if(m_playersPassed == m_players){
 				// Level clear, go to next
 				initializeLevel();
@@ -492,8 +491,6 @@ public:
         double MIN_A = 200;
         std::vector<Distractor> vec;
 
-        std::cout << "R: " << R << " A: " << A << " W: " << W << std::endl;
-
         using namespace Nimble::Math;
         double SHRINK_T = Sin(PI/3) * PI/4;
         double r_t = Sqrt(R/SHRINK_T);
@@ -502,8 +499,6 @@ public:
         double k = Sqrt(PI/(r_r/Tan(alpha) + alpha - PI/2) + 1);
         int i_max = int( floor( log(MAX_A/A) / log(k) ));
         int i_min = int( ceil ( log(MIN_A/A) / log(k) ));
-
-        std::cout << "k: " << k << " i_max: " << i_max << " i_min: " << i_min << std::endl;
 
         double id = Log2((A/W)+1);
 
@@ -515,8 +510,6 @@ public:
             double w0 = ki0 * W;
             double a1 = ki1 * A;
             double w1 = ki1 * W;
-
-            std::cout << ki0 << " " << ki1 << " " << a0 << " " << a1 << " " << w0 << " " << w1 << std::endl;
 
             for(int j = -n; j <= n; j++){
                 double angle = 2 * alpha / r_t * j;
@@ -541,8 +534,9 @@ public:
 
 		MyApplication& app = *MyApplication::me;
 		// Reset forces
-		app.overlay()->resetVectorField();
-
+        app.overlay()->resetAndClear();
+//		app.overlay()->resetVectorField();
+/*
 		MultiWidgets::Widget::ChildIterator it;
 		for (it = app.root()->childBegin(); it != app.root()->childEnd(); ++it) {
 			if (dynamic_cast<RoundTextBox*>(*it))
@@ -554,7 +548,7 @@ public:
 				//app.overlay()->deleteChild(*it);
 				(*it)->raiseFlag(RoundTextBox::DELETE_ME);
 		}
-
+*/
 		if (sentenceid > wordReader.maxSentence())
 			return;
 		

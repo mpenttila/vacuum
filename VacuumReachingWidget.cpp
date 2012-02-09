@@ -215,8 +215,12 @@ void VacuumReachingWidget::applyVacuum(){
             }
             else {
                 if(m_vacuumClones.count(*it) > 0){
-                    deleteChild(m_vacuumClones[*it]);
+                    cloneMapMutex.lock();
+                    MultiWidgets::Widget * w = m_vacuumClones[*it];
+                    m_vacuumClones[*it] = 0;
+                    deleteChild(w);
                     m_vacuumClones.erase(*it);
+                    cloneMapMutex.unlock();
                     (*it)->recursiveSetAlpha(1.0f);
                 }
             }
@@ -379,7 +383,7 @@ void VacuumReachingWidget::input(MultiWidgets::GrabManager & gm, float dt)
 
             //hit->recursiveSetAlpha(1.0f);
             //parent()->addChild(hit);
-            std::cout << "hit!" << std::endl;
+            //std::cout << "hit!" << std::endl;
             hit->input(gm, dt);
 		}
 	}
@@ -435,7 +439,7 @@ void VacuumReachingWidget::input(MultiWidgets::GrabManager & gm, float dt)
 //                //hit->recursiveSetAlpha(1.0f);
 //			}
 
-            std::cout << "hit 2!" << std::endl;
+            //std::cout << "hit 2!" << std::endl;
             hit->input(gm, dt);
 			
             //parent()->addChild(hit);
@@ -602,59 +606,6 @@ void VacuumReachingWidget::render(Luminous::RenderContext & r)
 
     Nimble::Matrix3 m = Nimble::Matrix3::scale2D(1, -1) * Nimble::Matrix3::translate2D(0, -area->graphicsSize().y);
     // render
-/*	if (m_featureFlags & FEATURE_PARTICLES && !m_particles.empty()) {
-        r.pushTransformRightMul(m * Nimble::Matrix3::scale2D(width(), height()));
-        gld->m_vbo->allocate(m_particles.size()*2*sizeof(Particle), Luminous::VertexBuffer::STREAM_DRAW);
-        Particle * v = (Particle*)gld->m_vbo->map(Luminous::VertexBuffer::WRITE_ONLY);
-        memcpy(v, &m_particles[0], sizeof(Particle)*m_particles.size());
-        // draw particles
-        //        glDisable(GL_TEXTURE_2D);
-//    glEnable(GL_POINT_SMOOTH);
-        glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-
-        glEnable(GL_POINT_SPRITE);
-        glPointSize(32);
-        glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
-
-        particleTex.bind(GL_TEXTURE0);
-
-        gld->m_vbo->unmap();
-        glColor4f(0.255, 0.4, 0.96, 0.5);
-
-        gld->m_vbo->bind();
-
-        GLuint ageLoc = gld->m_particleShader->getAttribLoc("age");
-        glEnableVertexAttribArray(ageLoc);
-        GLuint maxAgeLoc = gld->m_particleShader->getAttribLoc("max_age");
-        glEnableVertexAttribArray(maxAgeLoc);
-        GLuint brightnessLoc = gld->m_particleShader->getAttribLoc("brightness");
-        glEnableVertexAttribArray(brightnessLoc);
-
-        glEnableClientState(GL_VERTEX_ARRAY);
-        gld->m_particleShader->bind();
-        gld->m_particleShader->setUniformInt("tex", 0);
-        gld->m_particleShader->setUniformInt("fieldX", 1);
-        gld->m_particleShader->setUniformInt("fieldY", 2);
-        Nimble::Matrix3 tmp = r.transform();
-        gld->m_particleShader->setUniformMatrix3("transformation", tmp);
-        glVertexPointer(2, GL_FLOAT, sizeof(Particle), BUFFER_OFFSET(sizeof(float)*3));
-        glVertexAttribPointer(ageLoc, 1, GL_FLOAT, GL_FALSE, sizeof(Particle), BUFFER_OFFSET(sizeof(float)*0));
-        glVertexAttribPointer(maxAgeLoc, 1, GL_FLOAT, GL_FALSE, sizeof(Particle), BUFFER_OFFSET(sizeof(float)*1));
-        glVertexAttribPointer(brightnessLoc, 1, GL_FLOAT, GL_FALSE, sizeof(Particle), BUFFER_OFFSET(sizeof(float)*2));
-
-        glDrawArrays(GL_POINTS, 0, m_particles.size());
-        gld->m_particleShader->unbind();
-
-        glDisableClientState(GL_VERTEX_ARRAY);
-        glDisableVertexAttribArray(ageLoc);
-        glDisableVertexAttribArray(maxAgeLoc);
-        glDisableVertexAttribArray(brightnessLoc);
-
-        gld->m_vbo->unbind();
-
-        r.popTransform();
-    }
-*/
     glPopAttrib();
     gld->m_fbo->unbind();
     glDrawBuffer(GL_BACK);
@@ -763,16 +714,20 @@ void VacuumReachingWidget::render(Luminous::RenderContext & r)
     glBegin(GL_LINES);
     // draw arrows for vector field
     std::map<MultiWidgets::Widget *, MultiWidgets::Widget *>::iterator it;
+    cloneMapMutex.lock();
     for(it = m_vacuumClones.begin(); it != m_vacuumClones.end(); ++it){
         MultiWidgets::Widget * origin = it->first;
         MultiWidgets::Widget * clone = it->second;
+        if(origin == 0 || clone == 0){
+            continue;
+        }
         Nimble::Vector2 start(origin->sceneGeometry().center());
         Nimble::Vector2 end(clone->sceneGeometry().center());
-        glColor4f(0.0, 0.0, 1.0, 0.3);
+        glColor4f(0.0, 0.0, 1.0, 1.0);
         glVertex2fv(start.data());
-        glColor4f(0.0, 0.0, 1.0, 0.9);
         glVertex2fv(end.data());
     }
+    cloneMapMutex.unlock();
     glEnd();
 
 
@@ -828,4 +783,16 @@ void VacuumReachingWidget::addMovingAndStaticWidgetPair(MultiWidgets::Widget* st
     m_static_to_moving[staticWidget] = movingWidget;
 }
 
+void VacuumReachingWidget::resetAndClear(){
+    resetVectorField();
+    m_vacuumWidgets.clear();
+    cloneMapMutex.lock();
+    m_vacuumClones.clear();
+    cloneMapMutex.unlock();
+    //deleteChildren();
+    MultiWidgets::Widget::ChildIterator it;
+    for (it = childBegin(); it != childEnd(); ++it) {
+        (*it)->raiseFlag(Widget::DELETE_ME);
+    }
+}
 
