@@ -26,14 +26,14 @@ public:
 	
 private:
 
-	void addVacuumWidget(long fingerId, Nimble::Vector2 center);
+    void addVacuumWidget(long fingerId, Nimble::Vector2 center, double rotation);
 	void deleteVacuumWidget(long fingerId);
 	void modifyVacuumWidget(long fingerId, double rotation, float intensity);
     void applyVacuum();
 	std::map<long, VacuumWidget*> m_vacuumWidgets;
 	std::map<void*, MultiWidgets::Widget *> m_static_to_moving;
 	std::map<void*, MultiWidgets::Widget *> m_moving_to_static;
-    std::map<void*, MultiWidgets::Widget *> m_vacuumClones;
+    std::map<MultiWidgets::Widget *, MultiWidgets::Widget *> m_vacuumClones;
 
 };
 

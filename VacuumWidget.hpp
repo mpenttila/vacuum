@@ -11,7 +11,9 @@ class VacuumWidget : public virtual MultiWidgets::Widget
 	virtual ~VacuumWidget();
 
 	/// Renders the widget, with OpenGL
-	virtual void render(Luminous::RenderContext & r);
+    //virtual void render(Luminous::RenderContext & r);
+    void renderContent(Luminous::RenderContext &r);
+
 	/// Tests if the given point is inside this widget
 	//virtual bool isInside(Nimble::Vector2 v) const;
 

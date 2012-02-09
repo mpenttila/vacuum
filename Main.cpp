@@ -344,7 +344,7 @@ public:
 				m_startButtons[0]->setDepth(0);
 				m_startButtons[0]->setVisible(false);
 				
-				m_scoreWidgets[0] = new MultiWidgets::TextBox(this, 0, MultiWidgets::TextBox::HCENTER);
+                m_scoreWidgets[0] = new MultiWidgets::TextBox(this, 0);
 				m_scoreWidgets[0]->setCSSType("ScoreWidget");
 				m_scoreWidgets[0]->setStyle(style());
 				m_scoreWidgets[0]->setText(std::string("0"));
@@ -352,7 +352,7 @@ public:
 				m_scoreWidgets[0]->setWidth(scoreWidth);
 				m_scoreWidgets[0]->setInputTransparent(true);
 				m_scoreWidgets[0]->setColor(0, 0, 0, 0);
-				m_scoreWidgets[0]->setLocation(sz.x/2 + 200, 100);			
+                m_scoreWidgets[0]->setLocation(sz.x - 100, 100);
 		}
 
 		setInputFlags(MultiWidgets::Widget::INPUT_PASS_TO_CHILDREN);
@@ -487,8 +487,9 @@ public:
 	}
 
     std::vector<Distractor> generateDistractorLayout(float R, double A, double W){
-        double MAX_A = 1500;
-        double MIN_A = 50;
+        MyApplication & app = * MyApplication::me;
+        double MAX_A = app.size().maximum();
+        double MIN_A = 200;
         std::vector<Distractor> vec;
 
         std::cout << "R: " << R << " A: " << A << " W: " << W << std::endl;
@@ -563,11 +564,7 @@ public:
 			
 			TargetWord word = wordReader.getWord(i, sentenceid, wordid);
 
-            RoundTextBox * tb = new RoundTextBox(app.overlay(), 0, MultiWidgets::TextBox::HCENTER);
-			tb->setCSSClass("FloatingWord");
-			tb->setStyle(app.style());
-			tb->setText(word.word);
-			// Word width and distance is in millimeters, have to calculate pixel width and location
+            // Word width and distance is in millimeters, have to calculate pixel width and location
 			int pixelWidth = Nimble::Math::Round((double)app.size().maximum() / m_physicalWidth * word.width);
 			int x = Nimble::Math::Round((double)app.size().maximum() / m_physicalWidth * word.distance);
             int pixelDistance = x;
@@ -589,36 +586,37 @@ public:
 					std::cout << "WARNING: Requested distance " << word.distance << " mm does not fit on current screen width (" << m_physicalWidth <<" mm)." << std::endl;
 				}
 			}
-			
-			tb->setWidth(pixelWidth);
-			tb->setHeight(pixelWidth);
-			tb->setAlignFlags(MultiWidgets::TextBox::HCENTER | MultiWidgets::TextBox::VCENTER);
-			tb->setLocation(Nimble::Vector2(x, app.size().minimum()/2 - pixelWidth/2));
-			//tb->setLocation(Nimble::Vector2(x, app.size().minimum()/2 - pixelWidth/2));
-			
-			//std::cout << "Widget calculated pixel width: " << pixelWidth << " location: x " << tb->location().x << " y " << tb->location().y << std::endl;
-			
-			tb->raiseFlag(RoundTextBox::LOCK_DEPTH);
-			tb->addOperator(new MultiWidgets::StayInsideParentOperator());
-			std::string eventname = std::string("word-acquired-") + Radiant::StringUtils::stringify(i);
-			tb->eventAddListener("interactionbegin", eventname.c_str(), this);
-			while(tb->lineCount() > 1){
-				int faceSize = tb->faceSize()-1;
-				tb->setFaceSize(faceSize);
-				if(faceSize == 6) break;
-			}
-            tb->setType("RoundTextBox");
-            tb->setPlayer(i);
-			
-			// Add widget to vector to find it later
-			m_currentWordWidgets.push_back(tb);
+            if(m_players == 2){
+                RoundTextBox * tb = new RoundTextBox(app.overlay(), 0, MultiWidgets::TextBox::HCENTER);
+                tb->setCSSClass("FloatingWord");
+                tb->setStyle(app.style());
+                tb->setText(word.word);
+                tb->setWidth(pixelWidth);
+                tb->setHeight(pixelWidth);
+                tb->setAlignFlags(MultiWidgets::TextBox::HCENTER | MultiWidgets::TextBox::VCENTER);
+                tb->setLocation(Nimble::Vector2(x, app.size().minimum()/2 - pixelWidth/2));
+                tb->raiseFlag(RoundTextBox::LOCK_DEPTH);
+                tb->addOperator(new MultiWidgets::StayInsideParentOperator());
+                std::string eventname = std::string("word-acquired-") + Radiant::StringUtils::stringify(i);
+                tb->eventAddListener("interactionbegin", eventname.c_str(), this);
+                while(tb->lineCount() > 1){
+                    int faceSize = tb->faceSize()-1;
+                    tb->setFaceSize(faceSize);
+                    if(faceSize == 6) break;
+                }
+                tb->setType("RoundTextBox");
+                tb->setPlayer(i);
 
-            if(m_players == 1){
+                // Add widget to vector to find it later
+                m_currentWordWidgets.push_back(tb);
+            }
+            else if(m_players == 1){
                 // Generate distractors
                 std::vector<Distractor> distractors = generateDistractorLayout(0.5, pixelDistance, pixelWidth);
                 std::vector<Distractor>::iterator it;
+                bool targetWordInserted = false;
                 for(it = distractors.begin(); it < distractors.end(); it++){
-                    std::cout << "Distractor w: " << (*it).width << " x: " << (*it).x << " y: " << (*it).y << std::endl;
+                    //std::cout << "Distractor w: " << (*it).width << " x: " << (*it).x << " y: " << (*it).y << std::endl;
                     RoundTextBox * dist = new RoundTextBox(app.overlay(), 0, MultiWidgets::TextBox::HCENTER);
                     dist->setCSSClass("FloatingWord");
                     dist->setStyle(app.style());
@@ -626,12 +624,30 @@ public:
                     dist->setHeight((*it).width);
 //                    int distx = Nimble::Math::Clamp(m_startButtons[i]->location().x - (*it).x, 0.0f, app.size().x);
 //                    int disty = Nimble::Math::Clamp(m_startButtons[i]->location().y - (*it).y, 0.0f, app.size().y);
-                    int distx = m_startButtons[i]->location().x - (*it).x;
-                    int disty = m_startButtons[i]->location().y - (*it).y;
+                    int distx = m_startButtons[i]->location().x - (*it).x - (*it).width/2;
+                    int disty = app.size().y/2 - (*it).y - (*it).width/2;
                     dist->setLocation(distx, disty);
                     dist->setAlignFlags(MultiWidgets::TextBox::HCENTER | MultiWidgets::TextBox::VCENTER);
                     dist->setType("RoundTextBox");
-                    dist->setPlayer(0);
+                    if(!targetWordInserted && (*it).y == 0 && distx <= app.size().x/5){
+                        // Insert target word into leftmost fifth
+                        dist->setText(word.word);
+                        //dist->raiseFlag(RoundTextBox::LOCK_DEPTH);
+                        dist->addOperator(new MultiWidgets::StayInsideParentOperator());
+                        std::string eventname = std::string("word-acquired-") + Radiant::StringUtils::stringify(i);
+                        dist->eventAddListener("interactionbegin", eventname.c_str(), this);
+                        while(dist->lineCount() > 1){
+                            int faceSize = dist->faceSize()-1;
+                            dist->setFaceSize(faceSize);
+                            if(faceSize == 6) break;
+                        }
+                        dist->setPlayer(i);
+                        m_currentWordWidgets.push_back(dist);
+                        targetWordInserted = true;
+                    }
+                    else{
+                        dist->setPlayer(0);
+                    }
                 }
             }
 		}

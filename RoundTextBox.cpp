@@ -33,7 +33,7 @@ RoundTextBox::~RoundTextBox()
 RoundTextBox * RoundTextBox::clone(){
 
 	RoundTextBox * tb2 = new RoundTextBox(parent(), 0, MultiWidgets::TextBox::HCENTER);
-	tb2->setCSSClass("FloatingWord_clone");
+    tb2->setCSSClass("FloatingWord");
 	tb2->setStyle(style());
 	tb2->setText(text());
 	tb2->setWidth(width());
@@ -130,6 +130,29 @@ void RoundTextBox::renderContent(Luminous::RenderContext & r)
 	}
  }
 */
+
+void RoundTextBox::renderBorder(Luminous::RenderContext &r){
+    //float color[] = {0, 0, 0, 1};
+    //r.drawArc(0.5f * size(), width() * 0.5f, 0, Nimble::Math::PI * 2, 10, 2, color, 30);
+    const float pw = m_cssPaddingWidth.asFloat();
+    const float bw = m_cssBorderWidth.asFloat();
+
+    if(bw <= 0.01f || m_cssBorderColor.alpha() <= 0.00001f)
+      return;
+
+//    const Nimble::Matrix3 & m = r.transform();
+
+//    Rect outside(-pw - bw, -pw -bw, size().x + pw + bw, size().y + pw + bw);
+//    Rect inside(-pw, -pw, size().x + pw, size().y + pw);
+
+    glDisable(GL_TEXTURE_2D);
+
+    r.useCurrentBlendMode();
+
+    //Luminous::Utils::glRectWithHoleAA(outside, inside, m, m_cssBorderColor.asColor().data());
+
+    r.drawArc(0.5f * size(), width() * 0.5f, 0, Nimble::Math::PI * 2, bw, 1, m_cssBorderColor.asColor().data(), 30);
+}
 
 void RoundTextBox::renderContent(Luminous::RenderContext & r)
 {

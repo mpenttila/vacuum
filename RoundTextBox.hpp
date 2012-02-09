@@ -15,6 +15,7 @@ class RoundTextBox : public virtual MultiWidgets::TextBox
 
         //virtual void cachedRender(Luminous::RenderContext & r);
 		void renderContent(Luminous::RenderContext & r);
+        void renderBorder(Luminous::RenderContext &r);
 		virtual bool isInside(Nimble::Vector2 v) const;
 		
 		inline void setType(std::string type)

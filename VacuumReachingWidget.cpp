@@ -8,6 +8,7 @@
 #include <Radiant/Color.hpp>
 #include <MultiWidgets/MessageSendOperator.hpp>
 #include <Radiant/BinaryData.hpp>
+#include <Nimble/Math.hpp>
 
 #include <Box2D/Box2D.h>
 
@@ -136,6 +137,9 @@ void VacuumReachingWidget::applyForceToBodies(float dt) {
 }
 
 void VacuumReachingWidget::applyVacuum(){
+
+    using namespace Nimble::Math;
+
     MultiWidgets::Widget::ChildIterator it = childBegin();
     MultiWidgets::Widget::ChildIterator end = childEnd();
 
@@ -179,26 +183,42 @@ void VacuumReachingWidget::applyVacuum(){
             vel *= 5;
 
             if(vel.x > 0.01 || vel.y > 0.01 || vel.x < -0.01 || vel.y < -0.01) {
-                //(*it)->recursiveSetAlpha(0.5f);
-                //body->ApplyLinearImpulse(b2Vec2(vel.x, vel.y), body->GetWorldPoint(toBox2D(v)));
-//                m_world.DestroyBody(body);
-//                m_bodies.erase(m_bodies.find(*it));
-                //(*it)->setLocation(900,100);
-                if(m_vacuumClones.count(*it) == 0){
-                    RoundTextBox * clone = tb->clone();
-                    clone->setScale(0.5);
-                    clone->setLocation(1500, tb->location().y + 0.25 * tb->size().y);
-                    clone->recursiveSetAlpha(0.5f);
-                    clone->setType("clone");
-                    std::string eventname = std::string("word-acquired-") + Radiant::StringUtils::stringify(tb->player());
-                    clone->eventAddListener("interactionbegin", eventname.c_str(), wordGameWidget);
-                    m_vacuumClones[*it] = clone;
+                std::map<long, VacuumWidget *>::const_iterator vaciter;
+                for(vaciter = m_vacuumWidgets.begin(); vaciter != m_vacuumWidgets.end(); ++vaciter  ){
+                    VacuumWidget * vw = vaciter->second;
+                    if(m_vacuumClones.count(*it) == 0){
+                        RoundTextBox * clone = tb->clone();
+                        float scalingFactor = 0.4;
+                        float cloneWidth = scalingFactor * tb->width();
+                        clone->setScale(scalingFactor);
+                        int vwx = vw->sceneGeometry().center().x;
+                        int vwy = vw->sceneGeometry().center().y;
+                        int tbx = tb->location().x + tb->width()/2;
+                        int tby = tb->location().y + tb->width()/2;
+                        int x = floor(Cos(vw->rotation() ) * (vw->width()/2 + Abs((vwx - tbx)*0.3)) +
+                                      vwx);
+                        int y = floor(Sin(vw->rotation() ) * (vw->width()/2 + 100 + Abs((vwy - tby)*0.3)) +
+                                      vwy);
+                        //std::cout << "rotation: " << vw->rotation() << " vwx: " << vwx << " tbx: " << tbx << " x: " << x << std::endl;
+                        //std::cout << " vwy: " << vwy << " tby: " << tby << " y: " << y << std::endl;
+                        clone->setLocation(x - cloneWidth/2, y - cloneWidth/2);
+                        //std::cout << "clone location: x: " << clone->location().x << " y: " << clone->location().y << std::endl;
+                        tb->recursiveSetAlpha(0.4f);
+                        clone->setType("clone");
+                        std::string eventname = std::string("word-acquired-") + Radiant::StringUtils::stringify(tb->player());
+                        clone->eventAddListener("interactionbegin", eventname.c_str(), wordGameWidget);
+                        m_vacuumClones[*it] = clone;
+                        tb->setDepth(-11);
+                        clone->setDepth(-10);
+                        std::cout << tb->depth() << " " << clone->depth() << " vacuum: " << vw->depth() << std::endl;
+                    }
                 }
             }
-            else if(m_vacuumWidgets.size() == 0) {
+            else {
                 if(m_vacuumClones.count(*it) > 0){
                     deleteChild(m_vacuumClones[*it]);
                     m_vacuumClones.erase(*it);
+                    (*it)->recursiveSetAlpha(1.0f);
                 }
             }
             //body->ApplyLinearImpulse(b2Vec2(vel.x, vel.y), body->GetWorldPoint(toBox2D(v)));
@@ -207,20 +227,21 @@ void VacuumReachingWidget::applyVacuum(){
     }
 }
 
-void VacuumReachingWidget::addVacuumWidget(long fingerId, Nimble::Vector2 center)
+void VacuumReachingWidget::addVacuumWidget(long fingerId, Nimble::Vector2 center, double rotation)
 {
 	//std::cout << "Adding vacuum widget" << std::endl;
 	VacuumWidget * v = new VacuumWidget(this);
 	//v->setStyle(style());
 	m_vacuumWidgets[fingerId] = v;
 
-	v->setThickness(10);
+    v->setThickness(5);
 	v->setSize(Nimble::Vector2(100, 100));
 	v->setColor(Radiant::Color("#69e8ffdd"));
-	v->setDepth(-1);
-	v->raiseFlag(VacuumWidget::LOCK_DEPTH);
+    v->setDepth(-1);
+    v->raiseFlag(VacuumWidget::LOCK_DEPTH);
 	v->setCenterLocation(center);
 	v->setInputTransparent(true);
+    v->setRotationAboutCenter(rotation);
 }
 
 void VacuumReachingWidget::deleteVacuumWidget(long fingerId)
@@ -348,7 +369,7 @@ void VacuumReachingWidget::input(MultiWidgets::GrabManager & gm, float dt)
             //m_world.DestroyBody(m_bodies[hit] );
             //m_bodies.erase(m_bodies.find(hit));
 			hit->touch();
-            hit->setDepth(0);
+            //hit->setDepth(0);
 
 			/*			
 			MultiWidgets::Widget * staticList = m_moving_to_static[hit];
@@ -507,7 +528,7 @@ void VacuumReachingWidget::input(MultiWidgets::GrabManager & gm, float dt)
 		// Draw vacuum widget if not yet drawn
         // UPDATE: Allow only one vacuum (breaks 2 player mode)
         if(m_vacuumWidgets.count(f.id()) == 0 && m_vacuumWidgets.size() == 0) {
-			addVacuumWidget(f.id(), f.initTipLocation());
+            addVacuumWidget(f.id(), f.initTipLocation(), diff.angle());
 		}
 		else
 		{
@@ -713,31 +734,48 @@ void VacuumReachingWidget::render(Luminous::RenderContext & r)
     */
 
     //glBegin(GL_LINES);
-        // Draw circles for area effect
-        for (int y=0; y < h; ++y) {
-            for (int x=0; x < w; ++x) {
-                Nimble::Vector2 loc(m_vectorFields[0].get(x,y)*width(), m_vectorFields[1].get(x,y)*height());
-                Nimble::Vector2 id(float(x)/(w-1) * width(), float(y)/(h-1) * height());
-                loc = r.project(loc);
-                id = r.project(id);
-                Nimble::Vector2 off = loc;
-                float lSq = off.lengthSqr();
-                if (lSq < 0.5f) continue;
-                off.normalize(2.0f*Nimble::Math::Log2(lSq));
+    // Draw circles for area effect
+    for (int y=0; y < h; ++y) {
+        for (int x=0; x < w; ++x) {
+            Nimble::Vector2 loc(m_vectorFields[0].get(x,y)*width(), m_vectorFields[1].get(x,y)*height());
+            Nimble::Vector2 id(float(x)/(w-1) * width(), float(y)/(h-1) * height());
+            loc = r.project(loc);
+            id = r.project(id);
+            Nimble::Vector2 off = loc;
+            float lSq = off.lengthSqr();
+            if (lSq < 0.5f) continue;
+            off.normalize(2.0f*Nimble::Math::Log2(lSq));
 
-                glBegin(GL_TRIANGLE_FAN);
+            glBegin(GL_TRIANGLE_FAN);
 
-                glColor4f(1.0, 0.8, 0.8, 0.05);
-                glVertex2f(id.x, id.y);
-                //glColor4f(0.0, 0.0, 1.0, 0.9);
-                for(int ang = 0; ang < 360; ang += 10){
-                    float rad = ang * 3.14159/180;
-                    glVertex2f(id.x + sin(rad) * 30.0f, id.y + cos(rad) * 30.0f);
-                }
-                glEnd();
+            glColor4f(1.0, 0.8, 0.8, 0.05);
+            glVertex2f(id.x, id.y);
+            //glColor4f(0.0, 0.0, 1.0, 0.9);
+            for(int ang = 0; ang < 360; ang += 10){
+                float rad = ang * 3.14159/180;
+                glVertex2f(id.x + sin(rad) * 30.0f, id.y + cos(rad) * 30.0f);
             }
+            glEnd();
         }
+    }
     //glEnd();
+
+    // Draw lines from clones to originals
+    glBegin(GL_LINES);
+    // draw arrows for vector field
+    std::map<MultiWidgets::Widget *, MultiWidgets::Widget *>::iterator it;
+    for(it = m_vacuumClones.begin(); it != m_vacuumClones.end(); ++it){
+        MultiWidgets::Widget * origin = it->first;
+        MultiWidgets::Widget * clone = it->second;
+        Nimble::Vector2 start(origin->sceneGeometry().center());
+        Nimble::Vector2 end(clone->sceneGeometry().center());
+        glColor4f(0.0, 0.0, 1.0, 0.3);
+        glVertex2fv(start.data());
+        glColor4f(0.0, 0.0, 1.0, 0.9);
+        glVertex2fv(end.data());
+    }
+    glEnd();
+
 
 
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
