@@ -210,7 +210,6 @@ void VacuumReachingWidget::applyVacuum(){
                         m_vacuumClones[*it] = clone;
                         tb->setDepth(-11);
                         clone->setDepth(-10);
-                        std::cout << tb->depth() << " " << clone->depth() << " vacuum: " << vw->depth() << std::endl;
                     }
                 }
             }
