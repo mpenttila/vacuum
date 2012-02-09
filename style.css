@@ -26,7 +26,7 @@ DistortWidget{
 	pull-type: 0;
 	/* ~ pi/16 * 8 */
 	pull-angle: 1.0;
-	background-alpha: 0.6;
+        background-alpha: 0.7;
 	idle-timeout: 1.0;
 	/*
 	arrows = 1

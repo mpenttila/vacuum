@@ -25,6 +25,7 @@ public:
     void decayVectorField(Radiant::MemGrid32f (&field)[2], float dt);
     virtual void processMessage(const char* msg, Radiant::BinaryData& bd);
     void resetAndClear();
+    void isReachingActive(bool active);
 	
 private:
 
@@ -38,6 +39,7 @@ private:
     std::map<MultiWidgets::Widget *, MultiWidgets::Widget *> m_vacuumClones;
 
     Radiant::Mutex cloneMapMutex;
+    bool m_active;
 
 };
 

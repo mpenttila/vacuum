@@ -14,7 +14,8 @@
 
 
 VacuumReachingWidget::VacuumReachingWidget(MultiWidgets::Widget * parent) :
-	ReachingWidget(parent)
+    ReachingWidget(parent),
+    m_active(false)
 {
 	setCSSType("VacuumReachingWidget");
 }
@@ -124,7 +125,7 @@ void VacuumReachingWidget::applyForceToBodies(float dt) {
 					if(m_bodies.count(*it) > 0 && ((*it)->location() - staticLoc).length() > 0.1){
 						m_world.DestroyBody(body);
 						m_bodies.erase(m_bodies.find(*it));
-						(*it)->setRotation(m_moving_to_static[*it]->rotation());
+                        (*it)->setRotation(m_moving_to_static[*it]->rotation());
 						(*it)->setLocation(m_moving_to_static[*it]->location());
 						
 					}
@@ -299,14 +300,14 @@ void VacuumReachingWidget::update(float dt)
         updateParticles(dt);
     }
 
-    if (m_featureFlags & FEATURE_VELOCITY_FIELD) {
+    /*if (m_featureFlags & FEATURE_VELOCITY_FIELD) {
         const float timestep = 0.02f;
         m_blurAcc += dt;
         while (m_blurAcc > timestep) {
             blur(m_blurFactor);
             m_blurAcc -= timestep;
         }
-    }
+    }*/
 
     //ensureWidgetsHaveBodies();
     //ensureGroundInitialized();
@@ -326,7 +327,7 @@ void VacuumReachingWidget::update(float dt)
 }
 
 void VacuumReachingWidget::decayVectorField(Radiant::MemGrid32f (&field)[2], float dt) {
-    float move = 0.1;
+    float move = 0.5;
     float * tx = field[0].data();
     float * ty = field[1].data();
     for (int y=0; y < h; ++y) {
@@ -341,6 +342,9 @@ void VacuumReachingWidget::decayVectorField(Radiant::MemGrid32f (&field)[2], flo
 
 void VacuumReachingWidget::input(MultiWidgets::GrabManager & gm, float dt)
 {
+    // Reaching disabled?
+    if(!m_active) return;
+
 	gm.pushTransformRightMul(transform());
 	Nimble::Matrix3 m = gm.transform();
 
@@ -796,3 +800,6 @@ void VacuumReachingWidget::resetAndClear(){
     }
 }
 
+void VacuumReachingWidget::isReachingActive(bool active){
+    m_active = active;
+}

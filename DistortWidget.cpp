@@ -11,7 +11,8 @@
 
 
 DistortWidget::DistortWidget(MultiWidgets::Widget * parent) :
-		ReachingWidget(parent)
+    ReachingWidget(parent),
+    m_active(false)
 {
 	setCSSType("DistortWidget");
 }
@@ -140,6 +141,9 @@ void DistortWidget::update(float dt)
 
 void DistortWidget::input(MultiWidgets::GrabManager & gm, float /* dt */)
 {
+    // Reaching disabled?
+    if(!m_active) return;
+
 	gm.pushTransformRightMul(transform());
 	Nimble::Matrix3 m = gm.transform();
 
@@ -465,7 +469,7 @@ void DistortWidget::render(Luminous::RenderContext & r)
 
 	r.pushTransformRightMul(m);
 
-	//renderChildren(r);
+    renderChildren(r);
 	r.popTransform();
 
 	glPopAttrib();
@@ -473,12 +477,12 @@ void DistortWidget::render(Luminous::RenderContext & r)
 	textureRead.bind(GL_TEXTURE0);
 
 	Luminous::Utils::glUsualBlend();
-	//glColor4f(1, 1, 1, m_bg_alpha);
+    glColor4f(1, 1, 1, m_bg_alpha);
 
 	//r.drawTexRect(area->graphicsBounds(), Nimble::Vector4(1, 1, 1, 1).data());
-	//Luminous::Utils::glTexRect(area->graphicsSize(), r.transform() * Nimble::Matrix3::translate2D(gfxLoc.x, gfxLoc.y));
+    Luminous::Utils::glTexRect(area->graphicsSize(), r.transform() * Nimble::Matrix3::translate2D(gfxLoc.x, gfxLoc.y));
 
-	renderChildren(r);
+    //renderChildren(r);
 
 	// hack around macintosh opengl strangeness
 	textures[0]->bind(GL_TEXTURE2);
@@ -493,13 +497,18 @@ void DistortWidget::render(Luminous::RenderContext & r)
 	r.popTransform();
 }
 
-void DistortWidget::addMovingAndStaticWidgetPair(MultiWidgets::Widget*, MultiWidgets::Widget*)
+void DistortWidget::isReachingActive(bool active)
 {
-	// Do nothing
+    m_active = active;
 }
 
 void DistortWidget::resetAndClear(){
     resetVectorField();
+    std::map<void*, b2Body*>::iterator bit;
+    for(bit = m_bodies.begin(); bit != m_bodies.end(); ++bit){
+        m_world.DestroyBody(bit->second);
+    }
+    m_bodies.clear();
     MultiWidgets::Widget::ChildIterator it;
     for (it = childBegin(); it != childEnd(); ++it) {
         (*it)->raiseFlag(Widget::DELETE_ME);

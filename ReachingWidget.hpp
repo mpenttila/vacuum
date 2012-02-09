@@ -71,7 +71,7 @@ public:
 	virtual void input(MultiWidgets::GrabManager & gm, float dt) = 0;
 	virtual void render(Luminous::RenderContext & r) = 0;
 	
-	virtual void addMovingAndStaticWidgetPair(MultiWidgets::Widget* staticWidget, MultiWidgets::Widget* movingWidget) = 0;
+    virtual void isReachingActive(bool active) = 0;
 
 	int w, h;
 	Radiant::MemGrid32f m_vectorFields[2];

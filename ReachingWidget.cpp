@@ -143,12 +143,12 @@ void ReachingWidget::updateBodiesToWidgets() {
 		b2Vec2 position = it->second->GetPosition();
 		float angle = it->second->GetAngle();
 		Widget * w = (Widget*)it->first;
-		if (w->inputTransparent()) {
-			it->second->SetTransform(toBox2D(w->mapToParent(w->size()*0.5f)), w->rotation());
-		} else {
+//		if (w->inputTransparent()) {
+//			it->second->SetTransform(toBox2D(w->mapToParent(w->size()*0.5f)), w->rotation());
+//		} else {
 			w->setCenterLocation(fromBox2D(position));
 			w->setRotation(angle);
-		}
+//		}
 	}
 }
 

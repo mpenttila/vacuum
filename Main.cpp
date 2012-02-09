@@ -161,20 +161,7 @@ void backgroundify(MultiWidgets::Widget * w)
 		float idle = w->lastInteraction().sinceSecondsD();
 		if (idle > IDLE_TIMEOUT && !w->inputTransparent()) {
 			w->setColor(1, 1, 1, 1);
-			// Only do this when in vacuum mode
-//			if(MyApplication::me->reachingMode == VACUUM_MODE)
-//			{
-//				w->recursiveSetAlpha(0.0f);
-//				MyApplication::me->overlay()->addChild(w);
-//				RoundTextBox * tb = dynamic_cast<RoundTextBox*>(w);
-//				RoundTextBox * clone = tb->clone();
-//                clone->setType("clone");
-//				clone->setInputTransparent(true);
-//				d->addMovingAndStaticWidgetPair(clone, w);
-//			}
-//			else{
-				MyApplication::me->overlay()->addChild(w);
-//			}
+            MyApplication::me->overlay()->addChild(w);
 		} else {
 			float t = 0.0f;
 			if (idle > IDLE_OK)
@@ -384,6 +371,7 @@ public:
 		MyApplication& app = *MyApplication::me;
 		m_currentWordWidgets.clear();
         //app.overlay()->resetVectorField();
+        app.overlay()->isReachingActive(false);
         app.overlay()->resetAndClear();
 		++m_currentword;
 
@@ -469,13 +457,19 @@ public:
 			logger.endRound();
 			int player = bd.readInt32();
 			m_collectedWords[player]->addWord((wordReader.getWord(player, m_currentsentence, m_currentword)).word);
-            //m_currentWordWidgets[player]->raiseFlag(RoundTextBox::DELETE_ME);
-            // Delete possible other widgets from the overlay
-
-            MyApplication& app = *MyApplication::me;
-            app.overlay()->resetAndClear();
+            m_currentWordWidgets[player]->raiseFlag(RoundTextBox::DELETE_ME);
 
 			if(m_playersPassed == m_players){
+                // Delete possible other widgets from the overlay
+                MyApplication& app = *MyApplication::me;
+                app.overlay()->resetAndClear();
+
+                // Delete widgets from root
+                MultiWidgets::Widget::ChildIterator it;
+                for (it = app.root()->childBegin(); it != app.root()->childEnd(); ++it) {
+                    if (dynamic_cast<RoundTextBox*>(*it))
+                        (*it)->raiseFlag(RoundTextBox::DELETE_ME);
+                }
 				// Level clear, go to next
 				initializeLevel();
 			}
@@ -645,7 +639,7 @@ public:
                 }
             }
 		}
-		
+        app.overlay()->isReachingActive(true);
 		logger.startRound();
 	}
 
@@ -678,9 +672,6 @@ int main(int argc, char ** argv)
 	SDL_Init(SDL_INIT_VIDEO);
 #endif
 	MyApplication app;
-    if(app.reachingMode == DISTORT_MODE){
-        app.m_postUpdate.push_back(bg);
-    }
 
 	if(!app.simpleInit(argc, argv))
 		return 1;
@@ -727,6 +718,10 @@ int main(int argc, char ** argv)
 			filename = std::string(argv[++i]);
 		}
 	}
+
+    if(app.reachingMode == DISTORT_MODE){
+        app.m_postUpdate.push_back(bg);
+    }
 
 	// Introduce generic distant reaching widget
 	ReachingWidget * d;
