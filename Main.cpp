@@ -224,12 +224,13 @@ class WordGameWidget : public MultiWidgets::Widget {
 
 public:
 
-	WordGameWidget(int players, MultiWidgets::Widget * p=0, double physicalWidth = 0, std::string filename = "targetwords") :
+	WordGameWidget(int players, MultiWidgets::Widget * p=0, double physicalWidth = 0, std::string filename = "targetwords", float density = 0.0) :
 		Parent(p),
 		m_currentsentence(1),
 		m_currentword(0),
 		m_players(players),
 		m_playersPassed(0),
+		m_density(density),
 		m_physicalWidth(physicalWidth),
 		wordReader(players, filename),
 		logger(MyApplication::me->reachingMode)
@@ -561,7 +562,7 @@ public:
 					std::cout << "WARNING: Requested distance " << word.distance << " mm does not fit on current screen width (" << m_physicalWidth <<" mm)." << std::endl;
 				}
 			}
-            if(m_players == 2){
+            if(m_players == 2 || m_density == 0.0){
                 RoundTextBox * tb = new RoundTextBox(app.overlay(), 0, MultiWidgets::TextBox::HCENTER);
                 tb->setCSSClass("FloatingWord");
                 tb->setStyle(app.style());
@@ -585,9 +586,9 @@ public:
                 // Add widget to vector to find it later
                 m_currentWordWidgets.push_back(tb);
             }
-            else if(m_players == 1){
+            else if(m_players == 1 && m_density > 0.0){
                 // Generate distractors
-                std::vector<Distractor> distractors = generateDistractorLayout(0.5, pixelDistance, pixelWidth);
+                std::vector<Distractor> distractors = generateDistractorLayout(m_density, pixelDistance, pixelWidth);
                 std::vector<Distractor>::iterator it;
                 bool targetWordInserted = false;
                 for(it = distractors.begin(); it < distractors.end(); it++){
@@ -654,8 +655,9 @@ public:
 	Valuable::ValueInt m_duplicateCount;
 	int m_players;
 	int m_playersPassed;
+	float m_density;	
 	double m_physicalWidth;
-
+	
 	WordReader wordReader;
 	Logger logger;
 };
@@ -677,6 +679,7 @@ int main(int argc, char ** argv)
 	int levelCount = 2;
 	// Default is the width of Multitouch Cell Advanced in millimeters
 	double displayWidth = 1018;
+	float distractor_density = 0.0;
 	std::string filename = "targetwords";
 
 	// Scan command line arguments for directory name
@@ -711,6 +714,9 @@ int main(int argc, char ** argv)
 		else if (r == "--wordfile" && (i+1) < argc){
 			filename = std::string(argv[++i]);
 		}
+		else if (r == "--density" && (i+1) < argc){
+			distractor_density = atof(argv[++i]);
+		}
 	}
 
     if(app.reachingMode == DISTORT_MODE){
@@ -741,8 +747,7 @@ int main(int argc, char ** argv)
 	//MultiWidgets::Widget * root = d;
 	app.m_overlay = d;
 
-
-	WordGameWidget * wg = new WordGameWidget(players, app.root(), displayWidth, filename);
+	WordGameWidget * wg = new WordGameWidget(players, app.root(), displayWidth, filename, distractor_density);
     wg->setDepth(-25);
 	wg->raiseFlag(WordGameWidget::LOCK_DEPTH);
 	wg->setAutoBringToTop(false);
