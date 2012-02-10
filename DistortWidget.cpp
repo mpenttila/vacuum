@@ -173,7 +173,7 @@ void DistortWidget::input(MultiWidgets::GrabManager & gm, float /* dt */)
 			m_world.DestroyBody(m_bodies[hit] );
 			m_bodies.erase(m_bodies.find(hit));
 			hit->touch();
-			hit->setDepth(-20);
+            //hit->setDepth(-20);
 			parent()->addChild(hit);
 		}
 	}
@@ -197,19 +197,19 @@ void DistortWidget::input(MultiWidgets::GrabManager & gm, float /* dt */)
 		Nimble::Vector2 locPrev = (m * f.prevTipLocation()).vector2();
 		Nimble::Vector2 diff = loc - locPrev;
 
-		//if (f.age()/gm.touchScreen().framesPerSecond() > 0.3f) {
-		Luminous::Transformer tr;
-		tr.pushTransform(Nimble::Matrix3::IDENTITY);
-		MultiWidgets::Widget * hit = findChildInside(tr, gm.project(f.initTipLocation()), this);
-		MultiWidgets::Widget * hit2 = findChildInside(tr, gm.project(f.tipLocation()), this);
-		if (hit && hit == hit2) {
-			m_world.DestroyBody(m_bodies[hit] );
-			m_bodies.erase(m_bodies.find(hit));
-			hit->touch();
-			parent()->addChild(hit);
-			continue;
-		}
-		//}
+        if (f.age()/gm.touchScreen().framesPerSecond() > 0.3f) {
+            Luminous::Transformer tr;
+            tr.pushTransform(Nimble::Matrix3::IDENTITY);
+            MultiWidgets::Widget * hit = findChildInside(tr, gm.project(f.initTipLocation()), this);
+            MultiWidgets::Widget * hit2 = findChildInside(tr, gm.project(f.tipLocation()), this);
+            if (hit && hit == hit2) {
+                m_world.DestroyBody(m_bodies[hit] );
+                m_bodies.erase(m_bodies.find(hit));
+                hit->touch();
+                parent()->addChild(hit);
+                continue;
+            }
+        }
 
 		touch();
 

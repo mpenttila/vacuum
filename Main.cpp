@@ -443,7 +443,7 @@ public:
 			TargetWord currentWord = wordReader.getWord(player, m_currentsentence, m_currentword);
 			logger.logAcquire(player, m_currentsentence, m_currentword, currentWord.word, currentWord.width, currentWord.distance);
             //std::cout << "word acquired by player " << player << std::endl;
-			++m_playersPassed;
+            ++m_playersPassed;
 			if(m_playersPassed == 1){
 				++m_playerScore[player];
 				m_scoreWidgets[player]->setText(Radiant::StringUtils::stringify(m_playerScore[player]));
@@ -501,9 +501,9 @@ public:
             double ki0 = Pow(k, i);
             double ki1 = Pow(k, i+0.5);
             double a0 = ki0 * A;
-            double w0 = ki0 * W;
+            //double w0 = ki0 * W;
             double a1 = ki1 * A;
-            double w1 = ki1 * W;
+            //double w1 = ki1 * W;
 
             for(int j = -n; j <= n; j++){
                 double angle = 2 * alpha / r_t * j;
@@ -513,7 +513,7 @@ public:
                     vec.push_back(dw);
                 }
                 else{
-                    Distractor dw = {w1/2, a1 * Cos(angle), a1 * Sin(angle)};
+                    Distractor dw = {a1/(Pow(2,id)-1), a1 * Cos(angle), a1 * Sin(angle)};
                     vec.push_back(dw);
                 }
             }
@@ -529,20 +529,7 @@ public:
 		MyApplication& app = *MyApplication::me;
 		// Reset forces
         app.overlay()->resetAndClear();
-//		app.overlay()->resetVectorField();
-/*
-		MultiWidgets::Widget::ChildIterator it;
-		for (it = app.root()->childBegin(); it != app.root()->childEnd(); ++it) {
-			if (dynamic_cast<RoundTextBox*>(*it))
-				//app.root()->deleteChild(*it);
-				(*it)->raiseFlag(RoundTextBox::DELETE_ME);
-		}
-		for (it = app.overlay()->childBegin(); it != app.overlay()->childEnd(); ++it) {
-			if (dynamic_cast<RoundTextBox*>(*it))
-				//app.overlay()->deleteChild(*it);
-				(*it)->raiseFlag(RoundTextBox::DELETE_ME);
-		}
-*/
+
 		if (sentenceid > wordReader.maxSentence())
 			return;
 		
@@ -606,21 +593,26 @@ public:
                 for(it = distractors.begin(); it < distractors.end(); it++){
                     //std::cout << "Distractor w: " << (*it).width << " x: " << (*it).x << " y: " << (*it).y << std::endl;
                     RoundTextBox * dist = new RoundTextBox(app.overlay(), 0, MultiWidgets::TextBox::HCENTER);
-                    dist->setCSSClass("FloatingWord");
-                    dist->setStyle(app.style());
+
                     dist->setWidth((*it).width);
                     dist->setHeight((*it).width);
-//                    int distx = Nimble::Math::Clamp(m_startButtons[i]->location().x - (*it).x, 0.0f, app.size().x);
-//                    int disty = Nimble::Math::Clamp(m_startButtons[i]->location().y - (*it).y, 0.0f, app.size().y);
-                    int distx = m_startButtons[i]->location().x - (*it).x - (*it).width/2;
+                    int distx;
+                    if(app.startSide == START_RIGHT){
+                        distx = m_startButtons[i]->location().x - (*it).x - (*it).width/2;
+                    }
+                    else{
+                        distx = m_startButtons[i]->location().x + (*it).x - (*it).width/2;
+                    }
                     int disty = app.size().y/2 - (*it).y - (*it).width/2;
                     dist->setLocation(distx, disty);
                     dist->setAlignFlags(MultiWidgets::TextBox::HCENTER | MultiWidgets::TextBox::VCENTER);
                     dist->setType("RoundTextBox");
-                    if(!targetWordInserted && (*it).y == 0 && distx <= app.size().x/5){
+                    if(!targetWordInserted && (*it).y == 0 && ((app.startSide == START_RIGHT && distx <= app.size().x/5)
+                                                               || (app.startSide == START_LEFT && distx >= (app.size().x*(4.0f/5.0f))))){
                         // Insert target word into leftmost fifth
                         dist->setText(word.word);
-                        //dist->raiseFlag(RoundTextBox::LOCK_DEPTH);
+                        dist->setCSSClass("FloatingWord_target");
+                        dist->setStyle(app.style());
                         dist->addOperator(new MultiWidgets::StayInsideParentOperator());
                         std::string eventname = std::string("word-acquired-") + Radiant::StringUtils::stringify(i);
                         dist->eventAddListener("interactionbegin", eventname.c_str(), this);
@@ -634,7 +626,9 @@ public:
                         targetWordInserted = true;
                     }
                     else{
-                        dist->setPlayer(0);
+                        dist->setCSSClass("FloatingWord");
+                        dist->setStyle(app.style());
+                        dist->setPlayer(-1);
                     }
                 }
             }

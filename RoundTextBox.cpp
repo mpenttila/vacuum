@@ -34,7 +34,7 @@ RoundTextBox * RoundTextBox::clone(){
 
 	RoundTextBox * tb2 = new RoundTextBox(parent(), 0, MultiWidgets::TextBox::HCENTER);
     tb2->setCSSClass("FloatingWord");
-	tb2->setStyle(style());
+    tb2->setStyle(style());
 	tb2->setText(text());
 	tb2->setWidth(width());
 	tb2->setHeight(height());
@@ -45,6 +45,7 @@ RoundTextBox * RoundTextBox::clone(){
 	tb2->setRotation(rotation());
 	tb2->setType("clone");
 	tb2->setFaceSize(faceSize());
+    tb2->setPlayer(player());
 	return tb2;	
 }
 /*
@@ -193,3 +194,6 @@ int RoundTextBox::player() const
     return m_playernumber;
 }
 
+void RoundTextBox::setPlayer(int i){
+    m_playernumber = i;
+}

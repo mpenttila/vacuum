@@ -162,16 +162,6 @@ void VacuumReachingWidget::applyVacuum(){
         };
         static const int PointCount = sizeof(points)/sizeof(points[0]);
 
-
-//        if(m_bodies.count(*it) == 0) {
-//            ++it;
-//            continue;
-//        }
-
-//        b2Body * body = m_bodies[*it];
-//        body->SetAngularVelocity(0.0f);
-//        body->SetLinearVelocity(b2Vec2(0,0));
-
         Vector2 vel(0,0);
         for (int i=0; i < PointCount; ++i) {
             Vector2 v = Vector2(points[i].x*it->width(), points[i].y*it->height());
@@ -196,21 +186,26 @@ void VacuumReachingWidget::applyVacuum(){
                         int vwy = vw->sceneGeometry().center().y;
                         int tbx = tb->location().x + tb->width()/2;
                         int tby = tb->location().y + tb->width()/2;
-                        int x = floor(Cos(vw->rotation() ) * (vw->width()/2 + Abs((vwx - tbx)*0.3)) +
-                                      vwx);
-                        int y = floor(Sin(vw->rotation() ) * (vw->width()/2 + 100 + Abs((vwy - tby)*0.3)) +
-                                      vwy);
+                        int x = floor(Cos(vw->rotation() ) * (vw->width()/2 + Abs((vwx - tbx)*0.3)) + vwx);
+                        int y = floor(Sin(vw->rotation() ) * (vw->width()/2 + 100 + Abs((vwy - tby)*0.3)) + vwy);
                         //std::cout << "rotation: " << vw->rotation() << " vwx: " << vwx << " tbx: " << tbx << " x: " << x << std::endl;
                         //std::cout << " vwy: " << vwy << " tby: " << tby << " y: " << y << std::endl;
                         clone->setLocation(x - cloneWidth/2, y - cloneWidth/2);
                         //std::cout << "clone location: x: " << clone->location().x << " y: " << clone->location().y << std::endl;
-                        tb->recursiveSetAlpha(0.4f);
+                        tb->recursiveSetAlpha(0.3f);
                         clone->setType("clone");
-                        std::string eventname = std::string("word-acquired-") + Radiant::StringUtils::stringify(tb->player());
-                        clone->eventAddListener("interactionbegin", eventname.c_str(), wordGameWidget);
+                        if(tb->player() >= 0){
+                            // Add event to clone of target widget
+                            std::string eventname = std::string("word-acquired-") + Radiant::StringUtils::stringify(tb->player());
+                            clone->eventAddListener("interactionbegin", eventname.c_str(), wordGameWidget);
+                            clone->setCSSClass("FloatingWord_target");
+                            clone->setStyle(tb->style());
+                            clone->setDepth(-8);
+                        }else{
+                            clone->setDepth(-10);
+                        }
                         m_vacuumClones[*it] = clone;
                         tb->setDepth(-11);
-                        clone->setDepth(-10);
                     }
                 }
             }
@@ -225,7 +220,6 @@ void VacuumReachingWidget::applyVacuum(){
                     (*it)->recursiveSetAlpha(1.0f);
                 }
             }
-            //body->ApplyLinearImpulse(b2Vec2(vel.x, vel.y), body->GetWorldPoint(toBox2D(v)));
         }
         ++it;
     }

@@ -23,8 +23,7 @@ class RoundTextBox : public virtual MultiWidgets::TextBox
 	
         virtual const char * type() const;
 
-        inline void setPlayer(int i)
-        { m_playernumber = i; }
+        void setPlayer(int i);
 
         int player() const;
 
