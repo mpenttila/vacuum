@@ -13,7 +13,7 @@ Install Cornerstone SDK from Multitouch Oy (http://cornerstone.multitouch.fi)
 and setup the correct runtime configuration.
 Install Qt development libraries.
 
-Run 'qmake' in the program directory (/distort).
+Run 'qmake' in the program directory (/vacuum).
 Run 'make' in the program directory.
 
 Operating instructions:
