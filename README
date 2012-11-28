@@ -1,9 +1,11 @@
 Distant target reaching on large multi-touch public walls
+Comparision between Flow and The Vacuum with distractors
 
-Seminar work for University of Helsinki, Department of Computer Science
+
+Based on seminar work for University of Helsinki, Department of Computer Science
 Advanced technologies in interactive systems seminar, autumn 2010
 
-Authors: Aki Reijonen, Niko Kiirala, Markus Penttilä
+Authors: Markus Penttilä, Aki Reijonen, Niko Kiirala
 
 Compiling instructions (Linux):
 
@@ -14,7 +16,21 @@ Install Qt development libraries.
 Run 'qmake' in the program directory (/distort).
 Run 'make' in the program directory.
 
-Execute ./run.sh
+Operating instructions:
+
+The compiled executable named 'vacuum' takes as parameters:
+--css style.css
+--players number_of_players
+--displaywidth width_in_millimeters
+--mode distort   (where distort == flow, default mode is vacuum)
+--start left     (default is start from right)
+--density float_value (density of distractors)
+--wordfile filename_prefix (default is targetwords, and the expected file is targetwords.1.txt for first player, targetwords.2.txt for second)
+
+e.g. ./vacuum --css style.css --players 1 --displaywidth 518 --mode distort --density 0.5
+
+Provided are run scripts run_distort.sh and run_vacuum.sh that can be edited for
+correct display width.
 
 
 Included Box2D libraries license:
